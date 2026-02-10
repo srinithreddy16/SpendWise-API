@@ -3,6 +3,8 @@ package com.spendwise.domain.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +23,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class User extends BaseEntity {
 
+    @NotBlank
+    @Email
     @Column(nullable = false, unique = true)
     private String email;
 

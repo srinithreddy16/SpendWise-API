@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,6 +40,9 @@ public class Expense extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Category category;
 
+    @Column(nullable = false)
+    @NotNull
+    @Positive
     private BigDecimal amount;
 
     private String description;

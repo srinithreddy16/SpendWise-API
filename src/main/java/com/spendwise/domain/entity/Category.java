@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,13 +16,17 @@ import lombok.Setter;
  * Belongs to one User. Referenced unidirectionally by Expense and Budget.
  */
 @Entity
-@Table(name = "categories")
+@Table(
+        name = "categories",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "name"})
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Category extends BaseEntity {
 
+    @NotBlank
     private String name;
 
     /**

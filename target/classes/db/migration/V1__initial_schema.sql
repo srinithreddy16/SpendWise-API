@@ -16,7 +16,7 @@ CREATE TABLE categories (
     updated_at timestamptz NOT NULL,
     name varchar(255) NOT NULL,
     user_id uuid NOT NULL,
-    CONSTRAINT fk_categories_user FOREIGN KEY (user_id) REFERENCES users(id)
+    CONSTRAINT fk_categories_user FOREIGN KEY (user_id) REFERENCES users(id) --The user_id in the categories table must match an existing id in the users table.
 );
 
 CREATE TABLE expenses (
@@ -28,8 +28,8 @@ CREATE TABLE expenses (
     amount numeric(19,2) NOT NULL,
     description varchar(1024),
     expense_date date NOT NULL,
-    CONSTRAINT fk_expenses_user FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT fk_expenses_category FOREIGN KEY (category_id) REFERENCES categories(id)
+    CONSTRAINT fk_expenses_user FOREIGN KEY (user_id) REFERENCES users(id), --The user_id in the expenses table must match an existing id in the users table.
+    CONSTRAINT fk_expenses_category FOREIGN KEY (category_id) REFERENCES categories(id) -- The category_id in the expenses table must match an existing id in the category table
 );
 
 CREATE TABLE budgets (

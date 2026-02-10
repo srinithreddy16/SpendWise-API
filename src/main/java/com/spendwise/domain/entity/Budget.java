@@ -1,5 +1,6 @@
 package com.spendwise.domain.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -7,6 +8,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,6 +50,9 @@ public class Budget extends BaseEntity {
     )
     private Set<Category> categories = new HashSet<>();
 
+    @Column(nullable = false)
+    @NotNull
+    @Positive
     private BigDecimal amount;
 
     /**
