@@ -149,7 +149,11 @@ public class JwtUtil {
             String userIdStr = claims.get(CLAIM_USER_ID, String.class);
             UUID userId = userIdStr != null ? UUID.fromString(userIdStr) : null;
             java.util.Collection<String> roles = extractRolesFromClaims(claims);
-            return Optional.of(new TokenClaims(username, userId, roles));
+            String type = claims.get(CLAIM_TYPE, String.class);
+            if (type == null) {
+                type = TYPE_ACCESS;
+            }
+            return Optional.of(new TokenClaims(username, userId, roles, type));
         } catch (JwtException e) {
             return Optional.empty();
         }

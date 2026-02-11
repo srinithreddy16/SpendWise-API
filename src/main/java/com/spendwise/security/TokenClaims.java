@@ -6,5 +6,5 @@ import java.util.UUID;
 /**
  * Extracted claims from a validated JWT.
  */
-public record TokenClaims(String username, UUID userId, Collection<String> roles) {
+public record TokenClaims(String username, UUID userId, Collection<String> roles, String type) { //type is for access or refresh token
 }

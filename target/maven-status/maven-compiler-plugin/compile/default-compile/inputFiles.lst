@@ -3,6 +3,7 @@ C:\Projects\SpendWise-API\src\main\java\com\spendwise\config\JwtProperties.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\config\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\config\PasswordConfig.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\config\SecurityConfig.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\controller\AuthController.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\controller\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\BaseEntity.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\Budget.java
@@ -12,7 +13,15 @@ C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\ExpenseAudit
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\Role.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\domain\entity\User.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\AuthResponse.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\LoginRequest.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\package-info.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\RefreshRequest.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\RegisterRequest.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\EmailAlreadyExistsException.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\GlobalExceptionHandler.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\InvalidCredentialsException.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\InvalidRefreshTokenException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\mapper\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\package-info.java
@@ -22,5 +31,6 @@ C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\JwtAuthentication
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\JwtUtil.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\TokenClaims.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\AuthService.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\SpendwiseApiApplication.java
