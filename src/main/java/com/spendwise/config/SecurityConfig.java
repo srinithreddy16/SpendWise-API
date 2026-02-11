@@ -10,9 +10,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+//This Configuration class Registers JwtAuthenticationFilter and configures the security chain
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
+@EnableWebSecurity  // It turns on Spring Security’s web security support.
+@EnableMethodSecurity //Security at the method level, not just URL level.
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -29,8 +30,9 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); //Key Step. First jwtAuthenticationFilter then UsernamePasswordAuthenticationFilter
 
         return http.build();
     }

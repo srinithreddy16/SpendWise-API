@@ -72,11 +72,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
 
-        //VERY IMPORTANT
+        //VERY IMPORTANT(NOTES)
         TokenClaims claims = claimsOpt.get();
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(claims.username());
-            UsernamePasswordAuthenticationToken authentication =
+            UsernamePasswordAuthenticationToken authentication =           // This token(object) is for passing to UsernamePasswordAuthentication filter which is next filter after JWT filter
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -87,11 +87,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+
+    //For registration and authorization no need of token
     private boolean shouldSkip(HttpServletRequest request) {
         String path = request.getRequestURI();
         return path != null && path.startsWith("/auth/");
     }
 
+
+    //This method safely logs only a small part of the JWT token to help debugging without exposing the full token.
     private static String maskToken(String token) {
         if (token == null || token.length() < 8) {
             return "***";
