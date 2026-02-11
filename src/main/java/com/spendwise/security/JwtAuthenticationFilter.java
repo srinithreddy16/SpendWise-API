@@ -1,12 +1,13 @@
 package com.spendwise.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spendwise.dto.ErrorResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,14 +26,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
-    @Autowired
     private final JwtUtil jwtUtil;
-    @Autowired
     private final UserDetailsService userDetailsService;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService, ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -59,15 +60,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         //Now we just have plain token and validating it with jwtUtil methods
         if (!jwtUtil.validateToken(token)) {
+            String errorCode = jwtUtil.getValidationErrorCode(token).orElse("INVALID_TOKEN");
+            String message = "EXPIRED_TOKEN".equals(errorCode) ? "Token has expired" : "Invalid token";
             log.warn("Invalid JWT: token present but invalid or expired (prefix: {}...)", maskToken(token));
-            sendUnauthorized(response);
+            sendUnauthorized(response, errorCode, message);
             return;
         }
 
         Optional<TokenClaims> claimsOpt = jwtUtil.extractClaims(token);
         if (claimsOpt.isEmpty()) {
             log.warn("Invalid JWT: could not extract claims (prefix: {}...)", maskToken(token));
-            sendUnauthorized(response);
+            sendUnauthorized(response, "INVALID_TOKEN", "Invalid token");
             return;
         }
 
@@ -83,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
             log.warn("User not found for JWT claims: {}", claims.username(), e);
-            sendUnauthorized(response);
+            sendUnauthorized(response, "UNAUTHORIZED", "User not found");
         }
     }
 
@@ -103,7 +106,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return token.substring(0, Math.min(8, token.length()));
     }
 
-    private void sendUnauthorized(HttpServletResponse response) throws IOException {
+    private void sendUnauthorized(HttpServletResponse response, String errorCode, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        ErrorResponse errorResponse = ErrorResponse.of(errorCode, message);
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

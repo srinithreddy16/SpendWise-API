@@ -2,6 +2,7 @@ package com.spendwise.security;
 
 import com.spendwise.config.JwtProperties;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -105,6 +106,24 @@ public class JwtUtil {
             return true;
         } catch (JwtException e) {
             return false;
+        }
+    }
+
+    /**
+     * Returns the validation error code for an invalid token.
+     * Returns empty if the token is valid.
+     */
+    public Optional<String> getValidationErrorCode(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.of("INVALID_TOKEN");
+        }
+        try {
+            parseClaims(token);
+            return Optional.empty();
+        } catch (ExpiredJwtException e) {
+            return Optional.of("EXPIRED_TOKEN");
+        } catch (JwtException e) {
+            return Optional.of("INVALID_TOKEN");
         }
     }
 
