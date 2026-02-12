@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
@@ -49,4 +50,10 @@ public class Expense extends BaseEntity {
 
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;
+
+    /**
+     * When non-null, the expense is soft-deleted and should be excluded from normal reads.
+     */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 }

@@ -22,12 +22,18 @@ C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\RefreshRequest.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\RegisterRequest.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\dto\ValidationErrorResponse.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\AccessDeniedException.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\DuplicateBudgetException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\EmailAlreadyExistsException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\GlobalExceptionHandler.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\InvalidCredentialsException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\InvalidRefreshTokenException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\package-info.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\exception\ResourceNotFoundException.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\mapper\package-info.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\BudgetRepository.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\CategoryRepository.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\ExpenseRepository.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\repository\UserRepository.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\CustomUserDetailsService.java
@@ -38,5 +44,7 @@ C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\JwtUtil.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\security\TokenClaims.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\AuthService.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\BudgetService.java
+C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\ExpenseService.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\service\package-info.java
 C:\Projects\SpendWise-API\src\main\java\com\spendwise\SpendwiseApiApplication.java

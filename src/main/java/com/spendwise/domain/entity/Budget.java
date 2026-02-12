@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,4 +65,10 @@ public class Budget extends BaseEntity {
      * Month of the budget period (1-12), or null for yearly budget.
      */
     private Integer month;
+
+    /**
+     * When non-null, the budget is soft-deleted and should be excluded from normal reads.
+     */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 }

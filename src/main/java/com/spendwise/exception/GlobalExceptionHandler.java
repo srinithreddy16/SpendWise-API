@@ -33,6 +33,36 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("INVALID_REFRESH_TOKEN", ex.getMessage()));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of("RESOURCE_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(com.spendwise.exception.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(com.spendwise.exception.AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of("ACCESS_DENIED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateBudgetException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateBudget(DuplicateBudgetException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("DUPLICATE_BUDGET", ex.getMessage()));
+    }
+
+    @ExceptionHandler(BudgetExceededException.class)
+    public ResponseEntity<ErrorResponse> handleBudgetExceeded(BudgetExceededException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("BUDGET_EXCEEDED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedAccessException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of("UNAUTHORIZED_ACCESS", ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
