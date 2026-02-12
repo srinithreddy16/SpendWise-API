@@ -11,6 +11,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for Expense entities.
+ * <p>
+ * <b>N+1 problem and JOIN FETCH (interview gold)</b>
+ * <p>
+ * <b>What is N+1?</b> When we load a list of expenses (1 query) and then access
+ * a lazy-loaded association (e.g. {@code expense.getCategory()}) inside a loop,
+ * Hibernate issues one extra query per expense. Result: 1 + N queries instead of 1.
+ * <p>
+ * <b>When it occurs:</b> With {@link com.spendwise.domain.entity.Expense#category}
+ * mapped as {@code FetchType.LAZY}, any code that iterates over expenses and
+ * calls {@code getCategory()} triggers N+1 (e.g. mapping to DTOs that need category id).
+ * <p>
+ * <b>JOIN FETCH solution:</b> Use JPQL {@code JOIN FETCH e.category} in a dedicated
+ * query. Hibernate loads expenses and their categories in a single SQL query (with a JOIN),
+ * so no lazy load is needed. Query count goes from N+1 to 1.
+ * <p>
+ * <b>LAZY vs EAGER:</b> We keep the default as LAZY on the entity. We do NOT switch
+ * to EAGER globally. Instead we use JOIN FETCH only in repository methods where the
+ * caller is known to need category data (e.g. list endpoints that return category id).
+ * This keeps other use cases efficient and avoids loading categories when not needed.
+ */
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
     Optional<Expense> findByIdAndDeletedAtIsNull(UUID id); //Find an expense by ID ,but only if it is not soft deleted
@@ -69,6 +91,29 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             ORDER BY e.expenseDate DESC
             """)
     List<Expense> findAllByUserWithCategoryExcludingDeleted(@Param("userId") UUID userId);
+
+    /**
+     * Fetches expenses for a user within a date range, with category loaded via JOIN FETCH.
+     * <p>
+     * Use this when you need expenses in a range and will access {@code expense.getCategory()}
+     * (e.g. filtering by category or building DTOs with category id). Without JOIN FETCH,
+     * that would cause N+1: one query here plus one per expense when category is accessed.
+     * With JOIN FETCH, a single query returns expenses and their categories.
+     * <p>
+     * Entity fetch type stays LAZY; only this query eagerly fetches category.
+     */
+    @Query("""
+            SELECT e FROM Expense e
+            JOIN FETCH e.category
+            WHERE e.user.id = :userId
+              AND e.expenseDate BETWEEN :start AND :end
+              AND e.deletedAt IS NULL
+            ORDER BY e.expenseDate DESC
+            """)
+    List<Expense> findByUserAndDateRangeWithCategory(
+            @Param("userId") UUID userId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
 
     /**
      * Fetches expenses for a user and category within a specific month, with category eagerly loaded.

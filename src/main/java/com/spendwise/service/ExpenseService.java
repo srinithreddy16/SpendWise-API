@@ -100,6 +100,7 @@ public class ExpenseService {
         expenseRepository.save(expense);
     }
 
+    // N + 1 problem here
     @Transactional(readOnly = true)
     public List<ExpenseResponse> getExpensesForUser(UUID currentUserId) {
         List<Expense> expenses = expenseRepository.findByUser_IdAndDeletedAtIsNullOrderByExpenseDateDesc(currentUserId);

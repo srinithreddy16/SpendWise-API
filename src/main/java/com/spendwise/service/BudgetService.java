@@ -171,7 +171,7 @@ public class BudgetService {
         LocalDate start = ym.atDay(1);
         LocalDate end = ym.atEndOfMonth();
 
-        // Load all expenses for the user in that month
+        // Load all expenses for the user in that month( N+1 problem)
         List<Expense> monthlyExpenses = expenseRepository
                 .findByUser_IdAndExpenseDateBetweenAndDeletedAtIsNullOrderByExpenseDateDesc(
                         user.getId(), start, end);
