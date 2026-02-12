@@ -41,6 +41,7 @@ public class ExpenseService {
         this.budgetRepository = budgetRepository;
     }
 
+    //Creates a new expense Belongs to a specific user Returns an ExpenseResponse DTO and save to DB
     @Transactional
     public ExpenseResponse createExpense(UUID currentUserId, CreateExpenseRequest request) {
         User user = loadUser(currentUserId);
@@ -54,7 +55,8 @@ public class ExpenseService {
         expense.setExpenseDate(request.expenseDate());
         expense.setDeletedAt(null);
 
-        validateBudgetOrThrow(user, expense.getAmount(), expense.getExpenseDate());
+        // Validate monthly budget for this user/category before saving.
+        validateMonthlyBudget(user.getId(), category.getId(), expense.getAmount(), expense.getExpenseDate());
 
         Expense saved = expenseRepository.save(expense);
         return toExpenseResponse(saved);
@@ -78,7 +80,13 @@ public class ExpenseService {
             expense.setExpenseDate(request.expenseDate());
         }
 
-        validateBudgetOrThrow(expense.getUser(), expense.getAmount(), expense.getExpenseDate());
+        // Re-validate budget with the potentially updated amount/date/category.
+        validateMonthlyBudget(
+                expense.getUser().getId(),
+                expense.getCategory().getId(),
+                expense.getAmount(),
+                expense.getExpenseDate()
+        );
 
         Expense saved = expenseRepository.save(expense);
         return toExpenseResponse(saved);
@@ -129,46 +137,42 @@ public class ExpenseService {
         );
     }
 
-    private void validateBudgetOrThrow(User user, BigDecimal amount, LocalDate expenseDate) {
-        if (amount == null || expenseDate == null) {
+    /**
+     * Validates that adding an expense of the given amount for the given user/category
+     * in the month of {@code expenseDate} does not exceed the configured monthly budget.
+     * <p>
+     * Behavior when no budget exists for that user/category/month: treated as \"no limit\".
+     * For the month of the expense, calculate how much the user has already spent in that category.
+     * If a budget exists and adding this expense would exceed it, throw an exception.”
+     */
+    private void validateMonthlyBudget(UUID userId, UUID categoryId, BigDecimal expenseAmount, LocalDate expenseDate) {
+        if (expenseAmount == null || expenseDate == null || categoryId == null) {
             return;
         }
 
-        YearMonth period = YearMonth.from(expenseDate);
-        int year = period.getYear();
-        int month = period.getMonthValue();
+        YearMonth ym = YearMonth.from(expenseDate);
+        LocalDate start = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
 
-        // Sum all budgets for this user/year/month plus yearly budgets for this year
-        List<Budget> budgetsForYear = budgetRepository.findByUser_IdAndYearAndDeletedAtIsNullOrderByMonthAsc(user.getId(), year);
-
-        BigDecimal monthlyBudgetsTotal = budgetsForYear.stream()
-                .filter(b -> b.getMonth() != null && b.getMonth() == month)
-                .map(Budget::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal yearlyBudgetsTotal = budgetsForYear.stream()
-                .filter(b -> b.getMonth() == null)
-                .map(Budget::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalBudget = monthlyBudgetsTotal.add(yearlyBudgetsTotal);
-        if (totalBudget.compareTo(BigDecimal.ZERO) <= 0) {
-            return; // no budget configured; treat as no limit
+        BigDecimal alreadySpent = expenseRepository.sumAmountByUserAndCategoryAndDateRange(
+                userId, categoryId, start, end);
+        if (alreadySpent == null) {
+            alreadySpent = BigDecimal.ZERO;
         }
 
-        // Sum existing expenses for this user in the same month (non-deleted)
-        LocalDate startOfMonth = period.atDay(1);
-        LocalDate endOfMonth = period.atEndOfMonth();
+        List<Budget> budgets = budgetRepository.findByUserAndYearAndMonthAndCategory(
+                userId, ym.getYear(), ym.getMonthValue(), categoryId);
+        if (budgets.isEmpty()) {
+            // No budget configured for this category in this month → treat as no limit.
+            return;
+        }
 
-        var monthlyExpenses = expenseRepository.findByUser_IdAndExpenseDateBetweenAndDeletedAtIsNullOrderByExpenseDateDesc(
-                user.getId(), startOfMonth, endOfMonth);
-
-        BigDecimal usedSoFar = monthlyExpenses.stream()
-                .map(Expense::getAmount)
+        BigDecimal budgetLimit = budgets.stream()
+                .map(Budget::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal projectedTotal = usedSoFar.add(amount);
-        if (projectedTotal.compareTo(totalBudget) > 0) {
+        BigDecimal projected = alreadySpent.add(expenseAmount);
+        if (projected.compareTo(budgetLimit) > 0) {
             throw new BudgetExceededException("Expense exceeds remaining monthly budget");
         }
     }

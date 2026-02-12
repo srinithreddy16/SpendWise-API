@@ -33,4 +33,29 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
             @Param("userId") UUID userId,
             @Param("year") int year,
             @Param("excludeId") UUID excludeId);
+
+    @Query("""
+            SELECT b FROM Budget b
+            JOIN b.categories c
+            WHERE b.user.id = :userId
+              AND b.year = :year
+              AND b.month = :month
+              AND b.deletedAt IS NULL
+              AND c.id = :categoryId
+            """)
+    List<Budget> findByUserAndYearAndMonthAndCategory(
+            @Param("userId") UUID userId,
+            @Param("year") int year,
+            @Param("month") int month,
+            @Param("categoryId") UUID categoryId);
 }
+/*
+We wrote these two @Query methods to:
+Prevent duplicate budgets during update
+Exclude the current record
+Correctly handle NULL month case
+Use JPQL because derived method names can't handle this cleanly
+
+
+
+*/
