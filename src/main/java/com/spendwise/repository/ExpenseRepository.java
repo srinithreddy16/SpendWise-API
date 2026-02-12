@@ -35,20 +35,36 @@ import java.util.UUID;
  */
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
-    Optional<Expense> findByIdAndDeletedAtIsNull(UUID id); //Find an expense by ID ,but only if it is not soft deleted
+    /**
+     * Finds an expense by ID, but only if it is not soft deleted.
+     * Uses boolean field for better query performance and indexability.
+     */
+    Optional<Expense> findByIdAndDeletedIsFalse(UUID id);
 
-    List<Expense> findByUser_IdAndDeletedAtIsNullOrderByExpenseDateDesc(UUID userId);
+    /**
+     * Finds all expenses for a user, excluding soft-deleted ones.
+     * Uses boolean field instead of timestamp check for better performance.
+     */
+    List<Expense> findByUser_IdAndDeletedIsFalseOrderByExpenseDateDesc(UUID userId);
 
-    List<Expense> findByUser_IdAndCategory_IdAndDeletedAtIsNullOrderByExpenseDateDesc(UUID userId, UUID categoryId); //expense.user.id = ?AND expense.category.id = ?AND deleted_at IS NULLORDER BY expenseDate DESC
+    /**
+     * Finds expenses by user and category, excluding soft-deleted ones.
+     * Uses boolean field for simpler and more efficient queries.
+     */
+    List<Expense> findByUser_IdAndCategory_IdAndDeletedIsFalseOrderByExpenseDateDesc(UUID userId, UUID categoryId);
 
-    List<Expense> findByUser_IdAndExpenseDateBetweenAndDeletedAtIsNullOrderByExpenseDateDesc(
-            UUID userId, LocalDate start, LocalDate end); //expense.user.id = ?AND expenseDate BETWEEN start AND endAND deleted_at IS NULLORDER BY expenseDate DESC
+    /**
+     * Finds expenses by user within a date range, excluding soft-deleted ones.
+     * Uses boolean field for better indexing and query clarity.
+     */
+    List<Expense> findByUser_IdAndExpenseDateBetweenAndDeletedIsFalseOrderByExpenseDateDesc(
+            UUID userId, LocalDate start, LocalDate end);
 
     /**
      * Fetches all expenses for a user, excluding soft-deleted ones.
      * <p>
      * Why explicit JPQL is preferred over derived method names:
-     * - More readable than long method names like findByUser_IdAndDeletedAtIsNullOrderByExpenseDateDesc
+     * - More readable than long method names like findByUser_IdAndDeletedIsFalseOrderByExpenseDateDesc
      * - Easier to maintain and modify query logic
      * - Consistent with other custom queries in the repository
      * - Can be easily extended with JOIN FETCH for performance optimization
@@ -57,11 +73,16 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
      * - Database portability (works across PostgreSQL, MySQL, H2, etc.)
      * - Type safety at compile time
      * - Entity-aware (uses entity names and relationships)
+     * <p>
+     * Why boolean instead of timestamp check:
+     * - Better indexing: boolean columns can be efficiently indexed
+     * - Simpler queries: {@code deleted = false} is clearer than {@code deletedAt IS NULL}
+     * - Better performance: boolean comparisons are faster than nullable timestamp checks
      */
     @Query("""
             SELECT e FROM Expense e
             WHERE e.user.id = :userId
-              AND e.deletedAt IS NULL
+              AND e.deleted = false
             ORDER BY e.expenseDate DESC
             """)
     List<Expense> findAllByUserExcludingDeleted(@Param("userId") UUID userId);
@@ -87,7 +108,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             SELECT e FROM Expense e
             JOIN FETCH e.category
             WHERE e.user.id = :userId
-              AND e.deletedAt IS NULL
+              AND e.deleted = false
             ORDER BY e.expenseDate DESC
             """)
     List<Expense> findAllByUserWithCategoryExcludingDeleted(@Param("userId") UUID userId);
@@ -107,7 +128,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             JOIN FETCH e.category
             WHERE e.user.id = :userId
               AND e.expenseDate BETWEEN :start AND :end
-              AND e.deletedAt IS NULL
+              AND e.deleted = false
             ORDER BY e.expenseDate DESC
             """)
     List<Expense> findByUserAndDateRangeWithCategory(
@@ -134,7 +155,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
               AND e.category.id = :categoryId
               AND YEAR(e.expenseDate) = :year
               AND MONTH(e.expenseDate) = :month
-              AND e.deletedAt IS NULL
+              AND e.deleted = false
             ORDER BY e.expenseDate DESC
             """)
     List<Expense> findByUserAndCategoryAndMonthWithCategory(
@@ -165,7 +186,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             FROM Expense e
             WHERE e.user.id = :userId
               AND e.category.id = :categoryId
-              AND e.deletedAt IS NULL
+              AND e.deleted = false
               AND e.expenseDate BETWEEN :start AND :end
             """)
     BigDecimal sumAmountByUserAndCategoryAndDateRange(

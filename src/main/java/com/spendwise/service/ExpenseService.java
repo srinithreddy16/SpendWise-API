@@ -54,6 +54,7 @@ public class ExpenseService {
         expense.setDescription(request.description());
         expense.setExpenseDate(request.expenseDate());
         expense.setDeletedAt(null);
+        expense.setDeleted(false); // Explicitly set to false for clarity (defaults to false anyway)
 
         // Validate monthly budget for this user/category before saving.
         validateMonthlyBudget(user.getId(), category.getId(), expense.getAmount(), expense.getExpenseDate());
@@ -92,18 +93,30 @@ public class ExpenseService {
         return toExpenseResponse(saved);
     }
 
+    /**
+     * Soft deletes an expense by setting the deleted flag to true.
+     * <p>
+     * <b>Why soft delete instead of physical deletion:</b>
+     * Financial systems require data preservation for compliance, audit trails, and data recovery.
+     * Physical deletion would violate regulatory requirements (SOX, GAAP, tax regulations) and make
+     * it impossible to recover from accidental deletions or investigate historical transactions.
+     * The expense record is preserved in the database but excluded from normal queries.
+     */
     @Transactional
     public void deleteExpense(UUID currentUserId, UUID expenseId) {
         Expense expense = loadOwnedExpense(expenseId, currentUserId);
-        // Soft delete via existing deletedAt semantics; row is not removed.
-        expense.setDeletedAt(expense.getDeletedAt() == null ? java.time.Instant.now() : expense.getDeletedAt());
+        // Soft delete: set boolean flag and timestamp, but do not remove the row
+        expense.setDeleted(true);
+        if (expense.getDeletedAt() == null) {
+            expense.setDeletedAt(java.time.Instant.now());
+        }
         expenseRepository.save(expense);
     }
 
     // N + 1 problem here
     @Transactional(readOnly = true)
     public List<ExpenseResponse> getExpensesForUser(UUID currentUserId) {
-        List<Expense> expenses = expenseRepository.findByUser_IdAndDeletedAtIsNullOrderByExpenseDateDesc(currentUserId);
+        List<Expense> expenses = expenseRepository.findByUser_IdAndDeletedIsFalseOrderByExpenseDateDesc(currentUserId);
         return expenses.stream()
                 .map(this::toExpenseResponse)
                 .toList();
@@ -120,7 +133,7 @@ public class ExpenseService {
     }
 
     private Expense loadOwnedExpense(UUID expenseId, UUID currentUserId) {
-        Expense expense = expenseRepository.findByIdAndDeletedAtIsNull(expenseId)
+        Expense expense = expenseRepository.findByIdAndDeletedIsFalse(expenseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
         if (!expense.getUser().getId().equals(currentUserId)) {
             throw new UnauthorizedAccessException("You are not allowed to access this expense");

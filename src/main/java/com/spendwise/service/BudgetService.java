@@ -171,10 +171,10 @@ public class BudgetService {
         LocalDate start = ym.atDay(1);
         LocalDate end = ym.atEndOfMonth();
 
-        // Load all expenses for the user in that month( N+1 problem)
-        List<Expense> monthlyExpenses = expenseRepository
-                .findByUser_IdAndExpenseDateBetweenAndDeletedAtIsNullOrderByExpenseDateDesc(
-                        user.getId(), start, end);
+        // Load expenses for the month with category JOIN FETCH to avoid N+1 when filtering by category
+        // Uses deleted = false to exclude soft-deleted expenses
+        List<Expense> monthlyExpenses = expenseRepository.findByUserAndDateRangeWithCategory(
+                user.getId(), start, end);
 
         Set<UUID> categoryIds = budget.getCategories().stream()
                 .map(Category::getId)
