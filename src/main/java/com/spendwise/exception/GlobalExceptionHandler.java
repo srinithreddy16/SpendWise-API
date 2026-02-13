@@ -18,55 +18,55 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("EMAIL_ALREADY_EXISTS", ex.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.EMAIL_ALREADY_EXISTS));
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of("INVALID_CREDENTIALS", ex.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.INVALID_CREDENTIALS));
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
     public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of("INVALID_REFRESH_TOKEN", ex.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.INVALID_REFRESH_TOKEN));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode()));
     }
 
-    @ExceptionHandler(com.spendwise.exception.AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(com.spendwise.exception.AccessDeniedException ex) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ErrorResponse.of("ACCESS_DENIED", ex.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.ACCESS_DENIED));
     }
 
     @ExceptionHandler(DuplicateBudgetException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateBudget(DuplicateBudgetException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("DUPLICATE_BUDGET", ex.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.DUPLICATE_BUDGET));
     }
 
     @ExceptionHandler(BudgetExceededException.class)
     public ResponseEntity<ErrorResponse> handleBudgetExceeded(BudgetExceededException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode()));
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedAccessException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode()));
     }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -74,6 +74,15 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (a, b) -> a));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ValidationErrorResponse.of("VALIDATION_FAILED", "Validation failed", fieldErrors));
+                .body(ValidationErrorResponse.of(
+                        ErrorCode.VALIDATION_ERROR.name(),
+                        ErrorCode.VALIDATION_ERROR.getClientMessage(),
+                        fieldErrors));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_ERROR));
     }
 }

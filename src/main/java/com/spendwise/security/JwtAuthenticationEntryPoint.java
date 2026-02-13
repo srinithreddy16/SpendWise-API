@@ -2,6 +2,7 @@ package com.spendwise.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spendwise.dto.error.ErrorResponse;
+import com.spendwise.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
@@ -32,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        ErrorResponse errorResponse = ErrorResponse.of("UNAUTHORIZED", "Authentication required");
+        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.UNAUTHORIZED);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

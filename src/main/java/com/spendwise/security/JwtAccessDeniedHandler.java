@@ -2,6 +2,7 @@ package com.spendwise.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spendwise.dto.error.ErrorResponse;
+import com.spendwise.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
@@ -30,7 +31,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        ErrorResponse errorResponse = ErrorResponse.of("FORBIDDEN", "Access denied");
+        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.ACCESS_DENIED);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

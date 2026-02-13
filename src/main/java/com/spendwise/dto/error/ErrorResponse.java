@@ -1,5 +1,7 @@
 package com.spendwise.dto.error;
 
+import com.spendwise.exception.ErrorCode;
+
 import java.time.Instant;
 
 /**
@@ -11,5 +13,9 @@ public record ErrorResponse(String errorCode, String message, String timestamp) 
 
     public static ErrorResponse of(String errorCode, String message) {
         return new ErrorResponse(errorCode, message, Instant.now().toString());
+    }
+
+    public static ErrorResponse of(ErrorCode code) {
+        return of(code.name(), code.getClientMessage());
     }
 }
