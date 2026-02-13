@@ -9,6 +9,7 @@ import com.spendwise.dto.request.UpdateBudgetRequest;
 import com.spendwise.dto.response.BudgetResponse;
 import com.spendwise.exception.DuplicateBudgetException;
 import com.spendwise.exception.ResourceNotFoundException;
+import com.spendwise.mapper.BudgetMapper;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
@@ -36,17 +37,20 @@ public class BudgetService {
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final OwnershipValidationService ownershipValidationService;
+    private final BudgetMapper budgetMapper;
 
     public BudgetService(BudgetRepository budgetRepository,
                          CategoryRepository categoryRepository,
                          UserRepository userRepository,
                          ExpenseRepository expenseRepository,
-                         OwnershipValidationService ownershipValidationService) {
+                         OwnershipValidationService ownershipValidationService,
+                         BudgetMapper budgetMapper) {
         this.budgetRepository = budgetRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.expenseRepository = expenseRepository;
         this.ownershipValidationService = ownershipValidationService;
+        this.budgetMapper = budgetMapper;
     }
 
     // --- New DTO-based API ---
@@ -74,7 +78,7 @@ public class BudgetService {
 
         Budget saved = budgetRepository.save(budget);
         BudgetMetrics metrics = calculateBudgetMetrics(user, saved);
-        return toBudgetResponse(saved, metrics);
+        return budgetMapper.toBudgetResponse(saved, metrics.totalSpent(), metrics.remainingBudget());
     }
 
     /**
@@ -90,7 +94,7 @@ public class BudgetService {
 
         Budget saved = budgetRepository.save(budget);
         BudgetMetrics metrics = calculateBudgetMetrics(saved.getUser(), saved);
-        return toBudgetResponse(saved, metrics);
+        return budgetMapper.toBudgetResponse(saved, metrics.totalSpent(), metrics.remainingBudget());
     }
 
     /**
@@ -111,7 +115,7 @@ public class BudgetService {
         return budgets.stream()
                 .map(b -> {
                     BudgetMetrics metrics = calculateBudgetMetrics(user, b);
-                    return toBudgetResponse(b, metrics);
+                    return budgetMapper.toBudgetResponse(b, metrics.totalSpent(), metrics.remainingBudget());
                 })
                 .collect(Collectors.toList());
     }
@@ -200,22 +204,6 @@ public class BudgetService {
         }
 
         return new BudgetMetrics(totalSpent, remaining);
-    }
-
-    private BudgetResponse toBudgetResponse(Budget budget, BudgetMetrics metrics) {
-        Set<UUID> categoryIds = budget.getCategories().stream()
-                .map(Category::getId)
-                .collect(Collectors.toSet());
-
-        return new BudgetResponse(
-                budget.getId(),
-                budget.getAmount(),
-                budget.getYear(),
-                budget.getMonth() != null ? budget.getMonth() : 0,
-                categoryIds,
-                metrics.totalSpent(),
-                metrics.remainingBudget()
-        );
     }
 
     private record BudgetMetrics(BigDecimal totalSpent, BigDecimal remainingBudget) {

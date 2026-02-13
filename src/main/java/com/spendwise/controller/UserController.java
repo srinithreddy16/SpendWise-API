@@ -2,6 +2,7 @@ package com.spendwise.controller;
 
 import com.spendwise.domain.entity.User;
 import com.spendwise.dto.response.UserResponse;
+import com.spendwise.mapper.UserMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 public class UserController {
 
+    private final UserMapper userMapper;
+
+    public UserController(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); //It tells Spring Security: This request is now authenticated as this user.”
@@ -23,12 +30,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        UserResponse response = new UserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole() != null ? user.getRole().name() : null
-        );
+        UserResponse response = userMapper.toUserResponse(user);
         return ResponseEntity.ok(response);
     }
 }

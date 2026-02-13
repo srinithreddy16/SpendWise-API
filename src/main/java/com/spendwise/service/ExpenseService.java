@@ -9,6 +9,7 @@ import com.spendwise.dto.request.UpdateExpenseRequest;
 import com.spendwise.dto.response.ExpenseResponse;
 import com.spendwise.exception.BudgetExceededException;
 import com.spendwise.exception.ResourceNotFoundException;
+import com.spendwise.mapper.ExpenseMapper;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
@@ -30,17 +31,20 @@ public class ExpenseService {
     private final UserRepository userRepository;
     private final BudgetRepository budgetRepository;
     private final OwnershipValidationService ownershipValidationService;
+    private final ExpenseMapper expenseMapper; //Just like autowiring
 
     public ExpenseService(ExpenseRepository expenseRepository,
                           CategoryRepository categoryRepository,
                           UserRepository userRepository,
                           BudgetRepository budgetRepository,
-                          OwnershipValidationService ownershipValidationService) {
+                          OwnershipValidationService ownershipValidationService,
+                          ExpenseMapper expenseMapper) {
         this.expenseRepository = expenseRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.budgetRepository = budgetRepository;
         this.ownershipValidationService = ownershipValidationService;
+        this.expenseMapper = expenseMapper;
     }
 
     /**
@@ -66,7 +70,7 @@ public class ExpenseService {
         validateMonthlyBudget(user.getId(), category.getId(), expense.getAmount(), expense.getExpenseDate());
 
         Expense saved = expenseRepository.save(expense);
-        return toExpenseResponse(saved);
+        return expenseMapper.toExpenseResponse(saved);
     }
 
     /**
@@ -101,7 +105,7 @@ public class ExpenseService {
         );
 
         Expense saved = expenseRepository.save(expense);
-        return toExpenseResponse(saved);
+        return expenseMapper.toExpenseResponse(saved);
     }
 
     /**
@@ -134,7 +138,7 @@ public class ExpenseService {
     public List<ExpenseResponse> getExpensesForUser(UUID currentUserId) {
         List<Expense> expenses = expenseRepository.findByUser_IdAndDeletedIsFalseOrderByExpenseDateDesc(currentUserId);
         return expenses.stream()
-                .map(this::toExpenseResponse)
+                .map(expenseMapper::toExpenseResponse)
                 .toList();
     }
 
@@ -146,16 +150,6 @@ public class ExpenseService {
     private Category loadCategoryForUser(UUID categoryId, UUID currentUserId) {
         return categoryRepository.findByIdAndUser_Id(categoryId, currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found or access denied"));
-    }
-
-    private ExpenseResponse toExpenseResponse(Expense expense) {
-        return new ExpenseResponse(
-                expense.getId(),
-                expense.getCategory().getId(),
-                expense.getAmount(),
-                expense.getDescription(),
-                expense.getExpenseDate()
-        );
     }
 
     /**
