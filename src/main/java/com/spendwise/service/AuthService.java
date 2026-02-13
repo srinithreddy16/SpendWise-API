@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,11 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Registers a new user. This is the only place where user creation happens transactionally.
+     * Uses @Transactional to ensure atomicity: email uniqueness check and user save must succeed together.
+     */
+    @Transactional
     public AuthResponse register(RegisterRequest req) {
         if (userRepository.findByEmail(req.email()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already in use: " + req.email());
@@ -53,6 +59,11 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
+    /**
+     * Authenticates a user by email and password. Read-only operation: only queries the database
+     * to find the user and validate credentials. No state mutations occur.
+     */
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.email())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
@@ -65,7 +76,11 @@ public class AuthService {
     }
 
 
-    //This method generates a new access token (and maybe new refresh token for next access token)
+    /**
+     * Refreshes authentication tokens using a valid refresh token. Read-only operation:
+     * validates token, extracts claims, and looks up user. No database mutations occur.
+     */
+    @Transactional(readOnly = true)
     public AuthResponse refresh(RefreshRequest req) {
         String token = req.refreshToken();
         if (token == null || token.isBlank()) {

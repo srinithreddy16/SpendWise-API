@@ -51,6 +51,11 @@ public class BudgetService {
 
     // --- New DTO-based API ---
 
+    /**
+     * Creates a new budget for a user. Write operation that must be atomic:
+     * uniqueness validation, category loading, budget creation, and save must succeed together.
+     * Uses @Transactional to ensure consistency.
+     */
     @Transactional
     public BudgetResponse createBudget(UUID currentUserId, CreateBudgetRequest request) {
         User user = loadUser(currentUserId);
@@ -72,6 +77,11 @@ public class BudgetService {
         return toBudgetResponse(saved, metrics);
     }
 
+    /**
+     * Updates an existing budget. Write operation that must be atomic:
+     * ownership validation, field updates, uniqueness checks, and save must succeed together.
+     * Uses @Transactional to ensure consistency.
+     */
     @Transactional
     public BudgetResponse updateBudget(UUID currentUserId, UUID budgetId, UpdateBudgetRequest request) {
         Budget budget = ownershipValidationService.validateUserOwnsBudget(currentUserId, budgetId);
@@ -83,6 +93,12 @@ public class BudgetService {
         return toBudgetResponse(saved, metrics);
     }
 
+    /**
+     * Retrieves budgets for a user filtered by year and month. Read-only operation:
+     * queries database for budgets and calculates metrics, but performs no mutations.
+     * Uses @Transactional(readOnly = true) to document intent and allow persistence provider optimizations.
+     * Note: Metrics calculation involves in-memory aggregation but all database access is read-only.
+     */
     @Transactional(readOnly = true)
     public List<BudgetResponse> getBudgetsForUser(UUID currentUserId, int year, int month) {
         validateMonth(month);

@@ -43,7 +43,11 @@ public class ExpenseService {
         this.ownershipValidationService = ownershipValidationService;
     }
 
-    //Creates a new expense Belongs to a specific user Returns an ExpenseResponse DTO and save to DB
+    /**
+     * Creates a new expense for a user. Write operation that must be atomic:
+     * expense creation, budget validation, and save must succeed together or rollback.
+     * Uses @Transactional to ensure consistency.
+     */
     @Transactional
     public ExpenseResponse createExpense(UUID currentUserId, CreateExpenseRequest request) {
         User user = loadUser(currentUserId);
@@ -65,6 +69,11 @@ public class ExpenseService {
         return toExpenseResponse(saved);
     }
 
+    /**
+     * Updates an existing expense. Write operation that must be atomic:
+     * ownership validation, field updates, budget re-validation, and save must succeed together.
+     * Uses @Transactional to ensure consistency.
+     */
     @Transactional
     public ExpenseResponse updateExpense(UUID currentUserId, UUID expenseId, UpdateExpenseRequest request) {
         Expense expense = ownershipValidationService.validateUserOwnsExpense(currentUserId, expenseId);
@@ -103,6 +112,8 @@ public class ExpenseService {
      * Physical deletion would violate regulatory requirements (SOX, GAAP, tax regulations) and make
      * it impossible to recover from accidental deletions or investigate historical transactions.
      * The expense record is preserved in the database but excluded from normal queries.
+     * <p>
+     * Uses @Transactional to ensure the soft delete update is atomic and consistent.
      */
     @Transactional
     public void deleteExpense(UUID currentUserId, UUID expenseId) {
@@ -115,7 +126,10 @@ public class ExpenseService {
         expenseRepository.save(expense);
     }
 
-    // N + 1 problem here
+    /**
+     * Retrieves all non-deleted expenses for a user. Read-only operation that only queries the database.
+     * Uses @Transactional(readOnly = true) to document intent and allow persistence provider optimizations.
+     */
     @Transactional(readOnly = true)
     public List<ExpenseResponse> getExpensesForUser(UUID currentUserId) {
         List<Expense> expenses = expenseRepository.findByUser_IdAndDeletedIsFalseOrderByExpenseDateDesc(currentUserId);

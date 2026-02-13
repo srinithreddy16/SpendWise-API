@@ -20,6 +20,14 @@ import java.util.UUID;
  * Throws {@link UnauthorizedAccessException} when the resource does not exist or
  * does not belong to the user, so that we do not leak whether a resource exists
  * for another user.
+ * <p>
+ * <b>Transaction boundaries:</b> This service is intentionally non-transactional.
+ * Methods participate in existing transactions when called from {@code @Transactional}
+ * service methods (e.g., {@code ExpenseService.updateExpense}). When invoked outside
+ * a transaction, they perform simple isolated read queries, which is acceptable and
+ * lightweight. Adding {@code @Transactional} here would create unnecessary transaction
+ * scopes and potential nested transaction semantics. Transaction boundaries are defined
+ * by the calling service methods that represent the use-case boundaries.
  */
 @Service
 public class OwnershipValidationService {
