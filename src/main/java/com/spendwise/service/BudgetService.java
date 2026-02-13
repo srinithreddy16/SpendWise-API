@@ -9,6 +9,7 @@ import com.spendwise.dto.request.UpdateBudgetRequest;
 import com.spendwise.dto.response.BudgetResponse;
 import com.spendwise.exception.DuplicateBudgetException;
 import com.spendwise.exception.ResourceNotFoundException;
+import com.spendwise.exception.ValidationException;
 import com.spendwise.mapper.BudgetMapper;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
@@ -129,7 +130,7 @@ public class BudgetService {
 
     private void validateMonth(Integer month) {
         if (month == null || month < MIN_MONTH || month > MAX_MONTH) {
-            throw new IllegalArgumentException("Month must be between 1 and 12");
+            throw new ValidationException("Month must be between 1 and 12");
         }
     }
 

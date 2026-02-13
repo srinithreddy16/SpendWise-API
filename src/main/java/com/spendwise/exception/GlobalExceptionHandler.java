@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of("RESOURCE_NOT_FOUND", ex.getMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
     }
 
     @ExceptionHandler(com.spendwise.exception.AccessDeniedException.class)
@@ -54,13 +54,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BudgetExceededException.class)
     public ResponseEntity<ErrorResponse> handleBudgetExceeded(BudgetExceededException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("BUDGET_EXCEEDED", ex.getMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedAccessException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ErrorResponse.of("UNAUTHORIZED_ACCESS", ex.getMessage()));
+                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(ex.getErrorCode().name(), ex.getErrorCode().getClientMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
