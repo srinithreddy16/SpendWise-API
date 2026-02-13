@@ -9,7 +9,6 @@ import com.spendwise.dto.ExpenseResponse;
 import com.spendwise.dto.UpdateExpenseRequest;
 import com.spendwise.exception.BudgetExceededException;
 import com.spendwise.exception.ResourceNotFoundException;
-import com.spendwise.exception.UnauthorizedAccessException;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
@@ -30,15 +29,18 @@ public class ExpenseService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final BudgetRepository budgetRepository;
+    private final OwnershipValidationService ownershipValidationService;
 
     public ExpenseService(ExpenseRepository expenseRepository,
                           CategoryRepository categoryRepository,
                           UserRepository userRepository,
-                          BudgetRepository budgetRepository) {
+                          BudgetRepository budgetRepository,
+                          OwnershipValidationService ownershipValidationService) {
         this.expenseRepository = expenseRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.budgetRepository = budgetRepository;
+        this.ownershipValidationService = ownershipValidationService;
     }
 
     //Creates a new expense Belongs to a specific user Returns an ExpenseResponse DTO and save to DB
@@ -65,7 +67,7 @@ public class ExpenseService {
 
     @Transactional
     public ExpenseResponse updateExpense(UUID currentUserId, UUID expenseId, UpdateExpenseRequest request) {
-        Expense expense = loadOwnedExpense(expenseId, currentUserId);
+        Expense expense = ownershipValidationService.validateUserOwnsExpense(currentUserId, expenseId);
 
         if (request.categoryId() != null && !request.categoryId().equals(expense.getCategory().getId())) {
             Category category = loadCategoryForUser(request.categoryId(), currentUserId);
@@ -104,7 +106,7 @@ public class ExpenseService {
      */
     @Transactional
     public void deleteExpense(UUID currentUserId, UUID expenseId) {
-        Expense expense = loadOwnedExpense(expenseId, currentUserId);
+        Expense expense = ownershipValidationService.validateUserOwnsExpense(currentUserId, expenseId);
         // Soft delete: set boolean flag and timestamp, but do not remove the row
         expense.setDeleted(true);
         if (expense.getDeletedAt() == null) {
@@ -130,15 +132,6 @@ public class ExpenseService {
     private Category loadCategoryForUser(UUID categoryId, UUID currentUserId) {
         return categoryRepository.findByIdAndUser_Id(categoryId, currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found or access denied"));
-    }
-
-    private Expense loadOwnedExpense(UUID expenseId, UUID currentUserId) {
-        Expense expense = expenseRepository.findByIdAndDeletedIsFalse(expenseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
-        if (!expense.getUser().getId().equals(currentUserId)) {
-            throw new UnauthorizedAccessException("You are not allowed to access this expense");
-        }
-        return expense;
     }
 
     private ExpenseResponse toExpenseResponse(Expense expense) {

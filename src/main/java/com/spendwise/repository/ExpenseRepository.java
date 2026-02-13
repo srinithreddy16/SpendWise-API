@@ -42,6 +42,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     Optional<Expense> findByIdAndDeletedIsFalse(UUID id);
 
     /**
+     * Finds an expense by ID and user id, only if not soft deleted.
+     * Single query for efficient ownership validation: returns the expense only when it exists,
+     * belongs to the user, and is not deleted.
+     */
+    Optional<Expense> findByIdAndUser_IdAndDeletedIsFalse(UUID id, UUID userId);
+
+    /**
      * Finds all expenses for a user, excluding soft-deleted ones.
      * Uses boolean field instead of timestamp check for better performance.
      */

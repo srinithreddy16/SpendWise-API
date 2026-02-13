@@ -13,6 +13,13 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
 
     Optional<Budget> findByIdAndDeletedAtIsNull(UUID id);
 
+    /**
+     * Finds a budget by ID and user id, only if not soft deleted.
+     * Single query for efficient ownership validation: returns the budget only when it exists,
+     * belongs to the user, and is not deleted.
+     */
+    Optional<Budget> findByIdAndUser_IdAndDeletedAtIsNull(UUID id, UUID userId);
+
     List<Budget> findByUser_IdAndDeletedAtIsNullOrderByYearDescMonthDesc(UUID userId);
 
     List<Budget> findByUser_IdAndYearAndDeletedAtIsNullOrderByMonthAsc(UUID userId, int year);

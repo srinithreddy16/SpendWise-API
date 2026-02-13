@@ -9,7 +9,6 @@ import com.spendwise.dto.CreateBudgetRequest;
 import com.spendwise.dto.UpdateBudgetRequest;
 import com.spendwise.exception.DuplicateBudgetException;
 import com.spendwise.exception.ResourceNotFoundException;
-import com.spendwise.exception.UnauthorizedAccessException;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
@@ -36,15 +35,18 @@ public class BudgetService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
+    private final OwnershipValidationService ownershipValidationService;
 
     public BudgetService(BudgetRepository budgetRepository,
                          CategoryRepository categoryRepository,
                          UserRepository userRepository,
-                         ExpenseRepository expenseRepository) {
+                         ExpenseRepository expenseRepository,
+                         OwnershipValidationService ownershipValidationService) {
         this.budgetRepository = budgetRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.expenseRepository = expenseRepository;
+        this.ownershipValidationService = ownershipValidationService;
     }
 
     // --- New DTO-based API ---
@@ -72,7 +74,7 @@ public class BudgetService {
 
     @Transactional
     public BudgetResponse updateBudget(UUID currentUserId, UUID budgetId, UpdateBudgetRequest request) {
-        Budget budget = loadOwnedBudget(budgetId, currentUserId);
+        Budget budget = ownershipValidationService.validateUserOwnsBudget(currentUserId, budgetId);
 
         applyUpdate(budget, request, currentUserId);
 
@@ -103,15 +105,6 @@ public class BudgetService {
     private User loadUser(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
-
-    private Budget loadOwnedBudget(UUID budgetId, UUID currentUserId) {
-        Budget budget = budgetRepository.findByIdAndDeletedAtIsNull(budgetId)
-                .orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
-        if (!budget.getUser().getId().equals(currentUserId)) {
-            throw new UnauthorizedAccessException("You are not allowed to access this budget");
-        }
-        return budget;
     }
 
     private void validateMonth(Integer month) {
