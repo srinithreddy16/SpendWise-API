@@ -1,4 +1,4 @@
-package com.spendwise.dto;
+package com.spendwise.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

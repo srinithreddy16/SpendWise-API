@@ -2,10 +2,10 @@ package com.spendwise.service;
 
 import com.spendwise.domain.entity.Role;
 import com.spendwise.domain.entity.User;
-import com.spendwise.dto.AuthResponse;
-import com.spendwise.dto.LoginRequest;
-import com.spendwise.dto.RefreshRequest;
-import com.spendwise.dto.RegisterRequest;
+import com.spendwise.dto.request.LoginRequest;
+import com.spendwise.dto.request.RefreshRequest;
+import com.spendwise.dto.request.RegisterRequest;
+import com.spendwise.dto.response.AuthResponse;
 import com.spendwise.exception.EmailAlreadyExistsException;
 import com.spendwise.exception.InvalidCredentialsException;
 import com.spendwise.exception.InvalidRefreshTokenException;

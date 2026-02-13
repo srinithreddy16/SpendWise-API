@@ -1,7 +1,7 @@
 package com.spendwise.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spendwise.dto.ErrorResponse;
+import com.spendwise.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;

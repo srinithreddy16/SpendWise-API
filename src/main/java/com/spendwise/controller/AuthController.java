@@ -1,9 +1,9 @@
 package com.spendwise.controller;
 
-import com.spendwise.dto.AuthResponse;
-import com.spendwise.dto.LoginRequest;
-import com.spendwise.dto.RefreshRequest;
-import com.spendwise.dto.RegisterRequest;
+import com.spendwise.dto.request.LoginRequest;
+import com.spendwise.dto.request.RefreshRequest;
+import com.spendwise.dto.request.RegisterRequest;
+import com.spendwise.dto.response.AuthResponse;
 import com.spendwise.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

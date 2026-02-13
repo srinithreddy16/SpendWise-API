@@ -1,25 +1,20 @@
-package com.spendwise.dto;
+package com.spendwise.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record CreateExpenseRequest(
-
-        @NotNull(message = "Category is required")
+public record UpdateExpenseRequest(
         UUID categoryId,
 
-        @NotNull(message = "Amount is required")
         @Positive(message = "Amount must be positive")
         BigDecimal amount,
 
         String description,
 
-        @NotNull(message = "Expense date is required")
+        @PastOrPresent(message = "Expense date cannot be in the future")
         LocalDate expenseDate
-) {
-}
-
+) {}

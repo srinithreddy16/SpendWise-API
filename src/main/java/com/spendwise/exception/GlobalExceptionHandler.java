@@ -1,7 +1,7 @@
 package com.spendwise.exception;
 
-import com.spendwise.dto.ErrorResponse;
-import com.spendwise.dto.ValidationErrorResponse;
+import com.spendwise.dto.error.ErrorResponse;
+import com.spendwise.dto.error.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
