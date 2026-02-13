@@ -1,0 +1,60 @@
+# Maven
+target/
+pom.xml.tag
+pom.releaseBackup
+pom.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Build
+out/
+build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.code-workspace
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+replay_pid*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Spring Boot
+*.pid
+*.seed
+*.pid.lock
+
+# Environment / local config (uncomment if you use local overrides)
+# .env
+# application-local.properties
+# application-local.yml
+
+# Logs
+logs/
+*.log
+
+# Test / coverage
+.coverage
+htmlcov/
+*.cover
+.coverage.*
