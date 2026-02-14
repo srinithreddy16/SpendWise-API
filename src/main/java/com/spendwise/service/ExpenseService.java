@@ -5,15 +5,23 @@ import com.spendwise.domain.entity.Category;
 import com.spendwise.domain.entity.Expense;
 import com.spendwise.domain.entity.User;
 import com.spendwise.dto.request.CreateExpenseRequest;
+import com.spendwise.dto.request.ExpenseListParams;
 import com.spendwise.dto.request.UpdateExpenseRequest;
 import com.spendwise.dto.response.ExpenseResponse;
+import com.spendwise.dto.response.PageResponse;
 import com.spendwise.exception.BudgetExceededException;
 import com.spendwise.exception.ResourceNotFoundException;
+import com.spendwise.exception.ValidationException;
+import com.spendwise.repository.ExpenseSpecification;
 import com.spendwise.mapper.ExpenseMapper;
 import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
 import com.spendwise.repository.UserRepository;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +30,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 public class ExpenseService {
@@ -140,6 +149,96 @@ public class ExpenseService {
         return expenses.stream()
                 .map(expenseMapper::toExpenseResponse)
                 .toList();
+    }
+
+    private static final int DEFAULT_SIZE = 20;
+    private static final int MAX_SIZE = 100;
+
+    /**
+     * Lists expenses for a user with optional filters, pagination, and sorting.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ExpenseResponse> listExpenses(UUID currentUserId, ExpenseListParams params,
+                                                       int page, int size, List<String> sortParams) {
+        validateListParams(params);
+        if (params.categoryId() != null) {
+            loadCategoryForUser(params.categoryId(), currentUserId);
+        }
+
+        int validPage = Math.max(0, page);
+        int validSize = size <= 0 ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+        Sort sortObj = parseSort(sortParams);
+        Pageable pageable = PageRequest.of(validPage, validSize, sortObj);
+
+        Specification<Expense> spec = ExpenseSpecification.forUser(currentUserId)
+                .and(ExpenseSpecification.notDeleted());
+        if (params.categoryId() != null) {
+            spec = spec.and(ExpenseSpecification.withCategoryId(params.categoryId()));
+        }
+        if (params.fromDate() != null) {
+            spec = spec.and(ExpenseSpecification.fromDate(params.fromDate()));
+        }
+        if (params.toDate() != null) {
+            spec = spec.and(ExpenseSpecification.toDate(params.toDate()));
+        }
+        if (params.minAmount() != null) {
+            spec = spec.and(ExpenseSpecification.minAmount(params.minAmount()));
+        }
+        if (params.maxAmount() != null) {
+            spec = spec.and(ExpenseSpecification.maxAmount(params.maxAmount()));
+        }
+
+        var expensePage = expenseRepository.findAll(spec, pageable);
+        var content = expensePage.getContent().stream()
+                .map(expenseMapper::toExpenseResponse)
+                .toList();
+
+        return new PageResponse<>(content, new com.spendwise.dto.response.PageMetadata(
+                expensePage.getNumber(),
+                expensePage.getSize(),
+                expensePage.getTotalElements(),
+                expensePage.getTotalPages(),
+                expensePage.isFirst(),
+                expensePage.isLast(),
+                expensePage.getNumberOfElements()
+        ));
+    }
+
+    private void validateListParams(ExpenseListParams params) {
+        if (params.fromDate() != null && params.toDate() != null && params.fromDate().isAfter(params.toDate())) {
+            throw new ValidationException("fromDate must be before or equal to toDate");
+        }
+        if (params.minAmount() != null && params.maxAmount() != null
+                && params.minAmount().compareTo(params.maxAmount()) > 0) {
+            throw new ValidationException("minAmount must be less than or equal to maxAmount");
+        }
+    }
+
+    private static Sort parseSort(List<String> sortParams) {
+        if (sortParams == null || sortParams.isEmpty()) {
+            Sort.Order defaultOrder = new Sort.Order(Sort.Direction.DESC, "expenseDate");
+            return Sort.by(defaultOrder);
+        }
+        List<Sort.Order> orders = sortParams.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .flatMap(ExpenseService::parseSortOrder)
+                .toList();
+        if (orders.isEmpty()) {
+            return Sort.by(Sort.Direction.DESC, "expenseDate");
+        }
+        return Sort.by(orders);
+    }
+
+    private static Stream<Sort.Order> parseSortOrder(String sort) {
+        String[] parts = sort.split(",");
+        if (parts.length == 0 || parts[0].isBlank()) {
+            return Stream.empty();
+        }
+        String property = parts[0].trim();
+        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1].trim())
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+        String entityProperty = "categoryId".equals(property) ? "category.id" : property;
+        return Stream.of(new Sort.Order(direction, entityProperty));
     }
 
     private User loadUser(UUID userId) {

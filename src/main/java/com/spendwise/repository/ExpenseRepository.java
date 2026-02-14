@@ -1,7 +1,10 @@
 package com.spendwise.repository;
 
 import com.spendwise.domain.entity.Expense;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -33,7 +36,7 @@ import java.util.UUID;
  * caller is known to need category data (e.g. list endpoints that return category id).
  * This keeps other use cases efficient and avoids loading categories when not needed.
  */
-public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
+public interface ExpenseRepository extends JpaRepository<Expense, UUID>, JpaSpecificationExecutor<Expense> {
 
     /**
      * Finds an expense by ID, but only if it is not soft deleted.
