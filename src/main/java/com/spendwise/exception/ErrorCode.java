@@ -1,7 +1,5 @@
 package com.spendwise.exception;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * Central enum for API error codes and their safe, client-facing messages.
  * Ensures raw exception messages are never returned to clients.
@@ -11,7 +9,7 @@ public enum ErrorCode {
     UNAUTHORIZED("Authentication required"),
     RESOURCE_NOT_FOUND("The requested resource was not found"),
     BUDGET_EXCEEDED("Expense exceeds remaining monthly budget"),
-    VALIDATION_ERROR("Validation failed"),
+    VALIDATION_ERROR("One or more fields failed validation"),
     INTERNAL_ERROR("An unexpected error occurred"),
     INVALID_REFRESH_TOKEN("Invalid or expired refresh token"),
     ACCESS_DENIED("Access denied"),

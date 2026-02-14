@@ -33,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.UNAUTHORIZED);
+        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.UNAUTHORIZED, request.getRequestURI());
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

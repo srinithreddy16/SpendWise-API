@@ -8,11 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,12 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ErrorCode.INVALID_REFRESH_TOKEN, request.getRequestURI()));
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(ErrorCode.UNAUTHORIZED, request.getRequestURI()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -68,13 +76,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (a, b) -> a));
+                .collect(Collectors.toMap(FieldError::getField, e -> sanitizeMessage(e.getDefaultMessage()), (a, b) -> a));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ValidationErrorResponse.of(
                         ErrorCode.VALIDATION_ERROR.name(),
                         ErrorCode.VALIDATION_ERROR.getClientMessage(),
                         request.getRequestURI(),
                         fieldErrors));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        Map<String, String> fieldErrors = ex.getConstraintViolations().stream()
+                .collect(Collectors.toMap(v -> v.getPropertyPath().toString(), v -> sanitizeMessage(v.getMessage()), (a, b) -> a));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ValidationErrorResponse.of(
+                        ErrorCode.VALIDATION_ERROR.name(),
+                        ErrorCode.VALIDATION_ERROR.getClientMessage(),
+                        request.getRequestURI(),
+                        fieldErrors));
+    }
+
+    private static String sanitizeMessage(String message) {
+        return (message != null && !message.isBlank()) ? message : "Invalid value";
     }
 
     @ExceptionHandler(Exception.class)

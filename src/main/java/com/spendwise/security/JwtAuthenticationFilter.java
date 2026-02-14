@@ -62,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //Now we just have plain token and validating it with jwtUtil methods
         if (!jwtUtil.validateToken(token)) {
             log.warn("Invalid JWT: token present but invalid or expired (prefix: {}...)", maskToken(token));
-            sendUnauthorized(response, ErrorCode.INVALID_TOKEN);
+            sendUnauthorized(request, response, ErrorCode.INVALID_TOKEN);
             return;
         }
 
         Optional<TokenClaims> claimsOpt = jwtUtil.extractClaims(token);
         if (claimsOpt.isEmpty()) {
             log.warn("Invalid JWT: could not extract claims (prefix: {}...)", maskToken(token));
-            sendUnauthorized(response, ErrorCode.INVALID_TOKEN);
+            sendUnauthorized(request, response, ErrorCode.INVALID_TOKEN);
             return;
         }
 
@@ -85,7 +85,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
             log.warn("User not found for JWT claims: {}", claims.username(), e);
-            sendUnauthorized(response, ErrorCode.UNAUTHORIZED);
+            sendUnauthorized(request, response, ErrorCode.UNAUTHORIZED);
         }
     }
 
@@ -105,11 +105,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return token.substring(0, Math.min(8, token.length()));
     }
 
-    private void sendUnauthorized(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+    private void sendUnauthorized(HttpServletRequest request, HttpServletResponse response, ErrorCode errorCode) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        ErrorResponse errorResponse = ErrorResponse.of(errorCode);
+        ErrorResponse errorResponse = ErrorResponse.of(errorCode, request.getRequestURI());
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }
