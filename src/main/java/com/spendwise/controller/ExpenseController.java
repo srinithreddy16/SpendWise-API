@@ -4,7 +4,6 @@ import com.spendwise.dto.request.ExpenseListParams;
 import com.spendwise.dto.response.ExpenseResponse;
 import com.spendwise.dto.response.PageResponse;
 import com.spendwise.dto.response.UserResponse;
-import com.spendwise.mapper.ExpenseMapper;
 import com.spendwise.service.ExpenseService;
 import com.spendwise.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +26,10 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
     private final UserService userService;
-    private final ExpenseMapper expenseMapper;
 
-    public ExpenseController(ExpenseService expenseService, UserService userService, ExpenseMapper expenseMapper) {
+    public ExpenseController(ExpenseService expenseService, UserService userService) {
         this.expenseService = expenseService;
         this.userService = userService;
-        this.expenseMapper = expenseMapper;
     }
 
     //This endpoint securely returns a paginated, filtered, and sorted list of expenses for the currently logged-in user.
@@ -51,10 +48,7 @@ public class ExpenseController {
             @RequestParam(required = false) List<String> sort) {
         UserResponse currentUser = getCurrentUserOrThrow();
         ExpenseListParams params = ExpenseListParams.of(categoryId, fromDate, toDate, minAmount, maxAmount);
-        var expensePage =
-                expenseService.listExpenses(currentUser.id(), params, page, size, sort);
-        PageResponse<ExpenseResponse> response =
-                PageResponse.of(expensePage.map(expenseMapper::toExpenseResponse));
+        PageResponse<ExpenseResponse> response = expenseService.listExpenses(currentUser.id(), params, page, size, sort);
         return ResponseEntity.ok(response);
     }
 

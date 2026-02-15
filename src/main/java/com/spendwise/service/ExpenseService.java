@@ -8,6 +8,7 @@ import com.spendwise.dto.request.CreateExpenseRequest;
 import com.spendwise.dto.request.ExpenseListParams;
 import com.spendwise.dto.request.UpdateExpenseRequest;
 import com.spendwise.dto.response.ExpenseResponse;
+import com.spendwise.dto.response.PageResponse;
 import com.spendwise.exception.BudgetExceededException;
 import com.spendwise.exception.ResourceNotFoundException;
 import com.spendwise.exception.ValidationException;
@@ -156,11 +157,11 @@ public class ExpenseService {
 
     /**
      * Lists expenses for a user with optional filters, pagination, and sorting.
-     * Returns Page of entities; controller converts to paginated DTO response.
+     * Validates params, fetches page, maps to DTOs, returns paginated response.
      */
     @Transactional(readOnly = true)
-    public Page<Expense> listExpenses(UUID currentUserId, ExpenseListParams params,
-                                      int page, int size, List<String> sortParams) {
+    public PageResponse<ExpenseResponse> listExpenses(UUID currentUserId, ExpenseListParams params,
+                                                      int page, int size, List<String> sortParams) {
         validateListParams(params);
         if (params.categoryId() != null) {
             loadCategoryForUser(params.categoryId(), currentUserId);
@@ -172,7 +173,8 @@ public class ExpenseService {
         Pageable pageable = PageRequest.of(validPage, validSize, sortObj);
 
         Specification<Expense> spec = ExpenseSpecification.fromParams(currentUserId, params);
-        return expenseRepository.findAll(spec, pageable);
+        Page<Expense> expensePage = expenseRepository.findAll(spec, pageable);
+        return PageResponse.of(expensePage.map(expenseMapper::toExpenseResponse));
     }
 
     private void validateListParams(ExpenseListParams params) {
