@@ -8,7 +8,6 @@ import com.spendwise.dto.request.CreateExpenseRequest;
 import com.spendwise.dto.request.ExpenseListParams;
 import com.spendwise.dto.request.UpdateExpenseRequest;
 import com.spendwise.dto.response.ExpenseResponse;
-import com.spendwise.dto.response.PageResponse;
 import com.spendwise.exception.BudgetExceededException;
 import com.spendwise.exception.ResourceNotFoundException;
 import com.spendwise.exception.ValidationException;
@@ -18,6 +17,7 @@ import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
 import com.spendwise.repository.UserRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -151,15 +151,16 @@ public class ExpenseService {
                 .toList();
     }
 
-    private static final int DEFAULT_SIZE = 20;
+    private static final int DEFAULT_SIZE = 10;
     private static final int MAX_SIZE = 100;
 
     /**
      * Lists expenses for a user with optional filters, pagination, and sorting.
+     * Returns Page of entities; controller converts to paginated DTO response.
      */
     @Transactional(readOnly = true)
-    public PageResponse<ExpenseResponse> listExpenses(UUID currentUserId, ExpenseListParams params,
-                                                       int page, int size, List<String> sortParams) {
+    public Page<Expense> listExpenses(UUID currentUserId, ExpenseListParams params,
+                                      int page, int size, List<String> sortParams) {
         validateListParams(params);
         if (params.categoryId() != null) {
             loadCategoryForUser(params.categoryId(), currentUserId);
@@ -188,20 +189,7 @@ public class ExpenseService {
             spec = spec.and(ExpenseSpecification.maxAmount(params.maxAmount()));
         }
 
-        var expensePage = expenseRepository.findAll(spec, pageable);
-        var content = expensePage.getContent().stream()
-                .map(expenseMapper::toExpenseResponse)
-                .toList();
-
-        return new PageResponse<>(content, new com.spendwise.dto.response.PageMetadata(
-                expensePage.getNumber(),
-                expensePage.getSize(),
-                expensePage.getTotalElements(),
-                expensePage.getTotalPages(),
-                expensePage.isFirst(),
-                expensePage.isLast(),
-                expensePage.getNumberOfElements()
-        ));
+        return expenseRepository.findAll(spec, pageable);
     }
 
     private void validateListParams(ExpenseListParams params) {

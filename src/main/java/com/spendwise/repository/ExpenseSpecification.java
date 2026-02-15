@@ -10,6 +10,9 @@ import java.util.UUID;
 
 /**
  * Specifications for dynamic Expense filtering.
+ It is a helper class that builds dynamic database filters for Expense.
+ You build filters dynamically and combine them.
+ This is called Specification pattern in Spring Data JPA.
  */
 public final class ExpenseSpecification {
 

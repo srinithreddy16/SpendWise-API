@@ -4,6 +4,7 @@ import com.spendwise.dto.request.ExpenseListParams;
 import com.spendwise.dto.response.ExpenseResponse;
 import com.spendwise.dto.response.PageResponse;
 import com.spendwise.dto.response.UserResponse;
+import com.spendwise.mapper.ExpenseMapper;
 import com.spendwise.service.ExpenseService;
 import com.spendwise.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +27,12 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
     private final UserService userService;
+    private final ExpenseMapper expenseMapper;
 
-    public ExpenseController(ExpenseService expenseService, UserService userService) {
+    public ExpenseController(ExpenseService expenseService, UserService userService, ExpenseMapper expenseMapper) {
         this.expenseService = expenseService;
         this.userService = userService;
+        this.expenseMapper = expenseMapper;
     }
 
     //This endpoint securely returns a paginated, filtered, and sorted list of expenses for the currently logged-in user.
@@ -43,13 +46,15 @@ public class ExpenseController {
             @RequestParam(required = false) BigDecimal maxAmount,
             //pagination
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "10") int size,
             //sorting
             @RequestParam(required = false) List<String> sort) {
-        UserResponse currentUser = getCurrentUserOrThrow(); //only authenticated user can access this endpoint
+        UserResponse currentUser = getCurrentUserOrThrow();
         ExpenseListParams params = ExpenseListParams.of(categoryId, fromDate, toDate, minAmount, maxAmount);
-        PageResponse<ExpenseResponse> response =
+        var expensePage =
                 expenseService.listExpenses(currentUser.id(), params, page, size, sort);
+        PageResponse<ExpenseResponse> response =
+                PageResponse.of(expensePage.map(expenseMapper::toExpenseResponse));
         return ResponseEntity.ok(response);
     }
 
