@@ -1,6 +1,7 @@
 package com.spendwise.repository;
 
 import com.spendwise.domain.entity.Expense;
+import com.spendwise.dto.request.ExpenseListParams;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -50,5 +51,31 @@ public final class ExpenseSpecification {
 
     public static Specification<Expense> maxAmount(BigDecimal maxAmount) {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("amount"), maxAmount);
+    }
+
+    /**
+     * Builds a combined specification from filter params. Applies user ownership and
+     * not-deleted, then adds optional filters when params are non-null.
+       fromParams() builds one final dynamic database query by combining
+       required filters (user + notDeleted) with optional filters from ExpenseListParams.
+     */
+    public static Specification<Expense> fromParams(UUID userId, ExpenseListParams params) {
+        Specification<Expense> spec = forUser(userId).and(notDeleted());
+        if (params.categoryId() != null) {
+            spec = spec.and(withCategoryId(params.categoryId()));
+        }
+        if (params.fromDate() != null) {
+            spec = spec.and(fromDate(params.fromDate()));
+        }
+        if (params.toDate() != null) {
+            spec = spec.and(toDate(params.toDate()));
+        }
+        if (params.minAmount() != null) {
+            spec = spec.and(minAmount(params.minAmount()));
+        }
+        if (params.maxAmount() != null) {
+            spec = spec.and(maxAmount(params.maxAmount()));
+        }
+        return spec;
     }
 }

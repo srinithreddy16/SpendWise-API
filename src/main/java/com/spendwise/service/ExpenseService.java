@@ -171,24 +171,7 @@ public class ExpenseService {
         Sort sortObj = parseSort(sortParams);
         Pageable pageable = PageRequest.of(validPage, validSize, sortObj);
 
-        Specification<Expense> spec = ExpenseSpecification.forUser(currentUserId)
-                .and(ExpenseSpecification.notDeleted());
-        if (params.categoryId() != null) {
-            spec = spec.and(ExpenseSpecification.withCategoryId(params.categoryId()));
-        }
-        if (params.fromDate() != null) {
-            spec = spec.and(ExpenseSpecification.fromDate(params.fromDate()));
-        }
-        if (params.toDate() != null) {
-            spec = spec.and(ExpenseSpecification.toDate(params.toDate()));
-        }
-        if (params.minAmount() != null) {
-            spec = spec.and(ExpenseSpecification.minAmount(params.minAmount()));
-        }
-        if (params.maxAmount() != null) {
-            spec = spec.and(ExpenseSpecification.maxAmount(params.maxAmount()));
-        }
-
+        Specification<Expense> spec = ExpenseSpecification.fromParams(currentUserId, params);
         return expenseRepository.findAll(spec, pageable);
     }
 
