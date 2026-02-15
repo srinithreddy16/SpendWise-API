@@ -20,6 +20,30 @@ public final class ExpenseSpecification {
     private ExpenseSpecification() {
     }
 
+    /**
+     * Ownership filter plus JOIN FETCH for category to prevent N+1 on paginated list.
+     * <p>
+     * <b>Why fetch category:</b> ExpenseResponse includes categoryId, so mapping via
+     * ExpenseMapper.toExpenseResponse calls expense.getCategory().getId() for each row.
+     * Without JOIN FETCH, category would lazy-load once per expense (N+1). Fetching here
+     * loads categories in the same query as expenses.
+     * <p>
+     * <b>When we skip fetch:</b> Spring Data runs a separate count query for pagination;
+     * its CriteriaQuery has result type long. Applying fetch to the count query would
+     * add unnecessary joins and could affect the count. We skip fetch when
+     * getResultType() is Long/long so only the main entity query fetches category.
+     * <p>
+     * <b>Tradeoffs:</b>
+     * <ul>
+     *   <li><b>Specification fetch vs EAGER:</b> Fetch is scoped to list queries only.
+     *       EAGER on Expense.category would load category even when not needed (e.g. single-expense load).</li>
+     *   <li><b>Specification fetch vs dedicated @Query:</b> Specification keeps dynamic
+     *       filters (categoryId, date range, amount) in one place. A separate @Query with
+     *       JOIN FETCH would duplicate filter logic or require many method variants.</li>
+     *   <li><b>JOIN FETCH vs @BatchSize:</b> For a single ManyToOne, one JOIN FETCH suffices.
+     *       @BatchSize is useful for OneToMany; not needed here.</li>
+     * </ul>
+     */
     public static Specification<Expense> forUser(UUID userId) {
         return (root, query, cb) -> {
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
