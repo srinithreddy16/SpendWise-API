@@ -29,8 +29,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 @Service
 public class ExpenseService {
@@ -185,14 +185,17 @@ public class ExpenseService {
         }
     }
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "amount", "createdAt", "expenseDate", "categoryId", "description"
+    );
+
     private static Sort parseSort(List<String> sortParams) {
         if (sortParams == null || sortParams.isEmpty()) {
-            Sort.Order defaultOrder = new Sort.Order(Sort.Direction.DESC, "expenseDate");
-            return Sort.by(defaultOrder);
+            return Sort.by(Sort.Direction.DESC, "expenseDate");
         }
         List<Sort.Order> orders = sortParams.stream()
                 .filter(s -> s != null && !s.isBlank())
-                .flatMap(ExpenseService::parseSortOrder)
+                .map(ExpenseService::parseAndValidateSortOrder)
                 .toList();
         if (orders.isEmpty()) {
             return Sort.by(Sort.Direction.DESC, "expenseDate");
@@ -200,16 +203,23 @@ public class ExpenseService {
         return Sort.by(orders);
     }
 
-    private static Stream<Sort.Order> parseSortOrder(String sort) {
-        String[] parts = sort.split(",");
+    private static Sort.Order parseAndValidateSortOrder(String sort) {
+        String[] parts = sort.split(",", 2);
         if (parts.length == 0 || parts[0].isBlank()) {
-            return Stream.empty();
+            throw new ValidationException("Sort field is required");
         }
         String property = parts[0].trim();
-        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1].trim())
-                ? Sort.Direction.ASC : Sort.Direction.DESC;
+        if (!ALLOWED_SORT_FIELDS.contains(property)) {
+            throw new ValidationException("Invalid sort field: " + property);
+        }
+        String dirStr = parts.length > 1 ? parts[1].trim() : "desc";
+        Sort.Direction direction = switch (dirStr.toLowerCase()) {
+            case "asc" -> Sort.Direction.ASC;
+            case "desc" -> Sort.Direction.DESC;
+            default -> throw new ValidationException("Invalid sort direction: " + dirStr);
+        };
         String entityProperty = "categoryId".equals(property) ? "category.id" : property;
-        return Stream.of(new Sort.Order(direction, entityProperty));
+        return new Sort.Order(direction, entityProperty);
     }
 
     private User loadUser(UUID userId) {
