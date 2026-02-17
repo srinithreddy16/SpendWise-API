@@ -58,7 +58,7 @@ class AuthIntegrationTest {
 
         @Test
         @DisplayName("returns JWT on success")
-        void returnsJwt() {
+        void returnsJwtOnRegister() {
             RegisterRequest request = new RegisterRequest(
                     "register-test@example.com",
                     "password123",
@@ -84,7 +84,7 @@ class AuthIntegrationTest {
 
         @Test
         @DisplayName("returns JWT with registered credentials")
-        void returnsJwt() {
+        void returnsJwtOnLogin() {
             RegisterRequest registerRequest = new RegisterRequest(
                     "login-test@example.com",
                     "password123",

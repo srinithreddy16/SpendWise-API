@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +63,7 @@ class BudgetRepositoryTest {
     @BeforeEach
     void setUp() {
         user = new User();
-        user.setEmail("budget-user@test.com");
+        user.setEmail("budget-user-" + UUID.randomUUID() + "@test.com");
         user.setPassword("hash");
         user.setRole(Role.USER);
         user = userRepository.save(user);
@@ -159,7 +160,7 @@ class BudgetRepositoryTest {
         @DisplayName("returns empty when wrong user")
         void returnsEmptyWhenWrongUser() {
             User otherUser = new User();
-            otherUser.setEmail("other@test.com");
+            otherUser.setEmail("other-" + UUID.randomUUID() + "@test.com");
             otherUser.setPassword("hash");
             otherUser.setRole(Role.USER);
             otherUser = userRepository.save(otherUser);

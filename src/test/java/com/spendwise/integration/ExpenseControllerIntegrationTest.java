@@ -161,7 +161,7 @@ class ExpenseControllerIntegrationTest {
 
         @Test
         @DisplayName("returns 401 when request has no token")
-        void returns401() {
+        void returns401WhenNoToken() {
             ResponseEntity<ErrorResponse> response = restTemplate.exchange(
                     baseUrl() + "/expenses",
                     HttpMethod.GET,

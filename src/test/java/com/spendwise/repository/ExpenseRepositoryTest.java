@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,13 +63,13 @@ class ExpenseRepositoryTest {
     @BeforeEach
     void setUp() {
         userA = new User();
-        userA.setEmail("userA@test.com");
+        userA.setEmail("userA-" + UUID.randomUUID() + "@test.com");
         userA.setPassword("hash");
         userA.setRole(Role.USER);
         userA = userRepository.save(userA);
 
         userB = new User();
-        userB.setEmail("userB@test.com");
+        userB.setEmail("userB-" + UUID.randomUUID() + "@test.com");
         userB.setPassword("hash");
         userB.setRole(Role.USER);
         userB = userRepository.save(userB);

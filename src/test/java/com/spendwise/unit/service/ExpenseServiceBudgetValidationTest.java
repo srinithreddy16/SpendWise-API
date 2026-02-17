@@ -91,7 +91,7 @@ class ExpenseServiceBudgetValidationTest {
 
         @Test
         @DisplayName("createExpense should pass without exception")
-        void shouldPass() {
+        void createsExpenseWhenNoBudget() {
             CreateExpenseRequest request = new CreateExpenseRequest(
                     categoryId,
                     new BigDecimal("500"),
@@ -121,7 +121,7 @@ class ExpenseServiceBudgetValidationTest {
 
         @Test
         @DisplayName("createExpense should pass when alreadySpent + amount <= budget")
-        void shouldPass() {
+        void createsExpenseWhenWithinLimit() {
             BigDecimal budgetAmount = new BigDecimal("1000");
             BigDecimal alreadySpent = new BigDecimal("200");
             BigDecimal expenseAmount = new BigDecimal("500");
@@ -156,7 +156,7 @@ class ExpenseServiceBudgetValidationTest {
 
         @Test
         @DisplayName("createExpense should pass when projected equals budget exactly")
-        void shouldPassWhenProjectedEqualsBudget() {
+        void createsExpenseWhenProjectedEqualsBudgetExactly() {
             BigDecimal budgetAmount = new BigDecimal("1000");
             BigDecimal alreadySpent = new BigDecimal("700");
             BigDecimal expenseAmount = new BigDecimal("300");
