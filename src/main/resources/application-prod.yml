@@ -1,3 +1,7 @@
+# --- Prod profile: production deployment ---
+# All config via environment variables (DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET).
+# Reduced logging: INFO default, WARN for Spring Security.
+# Flyway enabled in base config (applies to prod).
 spring:
   config:
     activate:
@@ -11,6 +15,6 @@ spring:
 
 logging:
   level:
-    root: INFO
+    root: INF
     org.springframework.security: WARN
 

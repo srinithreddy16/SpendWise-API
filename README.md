@@ -93,6 +93,27 @@ Using the built JAR (after `mvn clean package`):
 SPRING_PROFILES_ACTIVE=dev java -jar target/spendwise-api-0.0.1-SNAPSHOT.jar
 ```
 
+### Profile switching
+
+Activate a profile via environment variable or JVM argument:
+
+```bash
+# Environment variable
+SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
+
+# JVM argument
+java -jar target/spendwise-api-0.0.1-SNAPSHOT.jar -Dspring.profiles.active=dev
+```
+
+**Profile differences:**
+
+| Profile | Use case | Datasource | Logging |
+|---------|----------|------------|---------|
+| `dev` | Local development | Local PostgreSQL; URL/username have defaults | DEBUG for application, pretty console |
+| `prod` | Production deployment | Env vars only (DB_URL, DB_USERNAME, DB_PASSWORD) | INFO default, WARN for Spring Security |
+
+Flyway is enabled in both profiles. No credentials are hardcoded; use environment variables for all secrets.
+
 With the application running on the dev profile:
 
 - Health endpoint: `/actuator/health`

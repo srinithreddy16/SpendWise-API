@@ -1,3 +1,7 @@
+# --- Dev profile: local development ---
+# Uses local PostgreSQL. Set DB_USERNAME, DB_PASSWORD (and optionally DB_URL).
+# DEBUG logging for com.spendwise, pretty colored console output.
+# JPA show-sql enabled for query inspection.
 spring:
   config:
     activate:
@@ -5,7 +9,7 @@ spring:
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/spendwise_dev}
-    username: ${DB_USERNAME:srinith}
+    username: ${DB_USERNAME:spendwise_user}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
