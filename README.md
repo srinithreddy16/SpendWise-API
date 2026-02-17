@@ -14,7 +14,7 @@ This repository contains the REST API backend only (no UI); controllers and busi
 - **Persistence**: Spring Data JPA with PostgreSQL
 - **Migrations**: Flyway (see `src/main/resources/db/migration`)
 - **Validation**: Bean Validation (`spring-boot-starter-validation`, `jakarta.validation.*`)
-- **Security**: Spring Security (dependency present, configuration to be added)
+- **Security**: Spring Security with JWT (access + refresh tokens)
 - **Monitoring**: Spring Boot Actuator (health/info)
 - **Utilities**: Lombok for boilerplate reduction
 
@@ -50,6 +50,14 @@ Relationship summary:
 - One **User** ? many **Expenses**, **Categories**, **Budgets**
 - One **Expense** ? many **ExpenseAuditLog** entries
 - One **Budget** ? many **Categories** (many-to-many via `budget_categories`)
+
+## Security
+
+Authentication is JWT-based and stateless. Access tokens (15 min expiry) and refresh tokens (7 days) are signed with `JWT_SECRET`; no server-side session storage.
+
+**Public endpoints** (no auth): `/auth/register`, `/auth/login`, `/auth/refresh`
+
+**Protected endpoints**: require `Authorization: Bearer <accessToken>` (e.g. `/expenses`, `/users/me`)
 
 ## Running locally (dev profile)
 
@@ -119,6 +127,46 @@ With the application running on the dev profile:
 - Health endpoint: `/actuator/health`
 - Info endpoint: `/actuator/info`
 
+## Running with Docker
+
+**Prerequisites:** Docker and Docker Compose
+
+1. Copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` and `JWT_SECRET`
+2. Run:
+
+```bash
+docker-compose up --build
+```
+
+API: http://localhost:8080. PostgreSQL: localhost:5432. The app waits for the database to be healthy before starting.
+
+## API Examples
+
+**Register:**
+```bash
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123","name":"John"}'
+```
+
+**Login:**
+```bash
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+```
+
+**List expenses** (requires `accessToken` from login/register):
+```bash
+curl -X GET "http://localhost:8080/expenses?page=0&size=10" \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+**Health check:**
+```bash
+curl http://localhost:8080/actuator/health
+```
+
 ## Testing
 
 ### Strategy overview
@@ -158,4 +206,20 @@ mvn clean test
 - Tests run with a single command (`mvn test`) with no external database configuration.
 
 > Note: API endpoints for business operations (expense creation, budgeting, etc.) are **not** documented yet and will be added once controllers and services are implemented.
+
+## Production Features
+
+### Profiles
+
+- **dev**: Local development; default datasource URL and username; DEBUG logging for `com.spendwise`
+- **prod**: All config via env vars (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`); INFO default; WARN for Spring Security
+
+### Logging
+
+- Dev: DEBUG for application code, pretty colored console
+- Prod: INFO root, WARN for Spring Security; structured logging; no passwords or full JWT in logs
+
+### Actuator
+
+- `/actuator/health` (public) and `/actuator/metrics` (prod); health shows details when authorized
 
