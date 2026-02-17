@@ -98,5 +98,43 @@ With the application running on the dev profile:
 - Health endpoint: `/actuator/health`
 - Info endpoint: `/actuator/info`
 
+## Testing
+
+### Strategy overview
+
+Tests are organized by type under `src/test/java/com/spendwise/`:
+
+- **Unit tests** (`unit/service`): Mockito-based tests that isolate service logic from external dependencies.
+- **Integration tests** (`integration`): Full application tests that hit REST endpoints with a real database.
+- **Repository tests** (`repository`): JPA layer tests that validate persistence and queries.
+
+Unit tests use mocks; integration and repository tests use a real PostgreSQL database via Testcontainers.
+
+### How to run tests
+
+```bash
+mvn test
+```
+
+Or with a clean build:
+
+```bash
+mvn clean test
+```
+
+**Prerequisite:** Docker must be running (required for Testcontainers).
+
+### Unit vs Integration tests
+
+- **Unit tests**: Exercise service logic in isolation with mocked dependencies (`@ExtendWith(MockitoExtension.class)`). No Spring context, no database. Fast and focused on business rules.
+- **Integration tests**: Start the full application (`@SpringBootTest`) and hit REST endpoints via `TestRestTemplate`. Use a real PostgreSQL container. Validate end-to-end flows (auth, HTTP status, response body).
+- **Repository tests**: Use `@DataJpaTest` against a Testcontainers PostgreSQL instance. Validate JPA queries and persistence behavior without starting the whole application.
+
+### Why Testcontainers
+
+- Uses the same PostgreSQL engine as production, avoiding dialect or SQL differences from in-memory databases (e.g. H2).
+- No manual database setup or shared test database; each test class spins up its own container.
+- Tests run with a single command (`mvn test`) with no external database configuration.
+
 > Note: API endpoints for business operations (expense creation, budgeting, etc.) are **not** documented yet and will be added once controllers and services are implemented.
 
