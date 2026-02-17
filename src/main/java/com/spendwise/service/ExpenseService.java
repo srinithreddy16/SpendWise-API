@@ -125,6 +125,16 @@ public class ExpenseService {
     }
 
     /**
+     * Retrieves a single expense by ID. Read-only operation.
+     * Validates ownership before returning.
+     */
+    @Transactional(readOnly = true)
+    public ExpenseResponse getExpense(UUID currentUserId, UUID expenseId) {
+        Expense expense = ownershipValidationService.validateUserOwnsExpense(currentUserId, expenseId);
+        return expenseMapper.toExpenseResponse(expense);
+    }
+
+    /**
      * Soft deletes an expense by setting the deleted flag to true.
      * <p>
      * <b>Why soft delete instead of physical deletion:</b>

@@ -41,6 +41,9 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
             @Param("year") int year,
             @Param("excludeId") UUID excludeId);
 
+    @Query("SELECT COUNT(b) > 0 FROM Budget b JOIN b.categories c WHERE b.deletedAt IS NULL AND c.id = :categoryId")
+    boolean existsByCategoryIdAndDeletedAtIsNull(@Param("categoryId") UUID categoryId);
+
     @Query("""
             SELECT b FROM Budget b
             JOIN b.categories c

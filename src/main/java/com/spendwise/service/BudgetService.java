@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.HashSet;
@@ -96,6 +97,28 @@ public class BudgetService {
         Budget saved = budgetRepository.save(budget);
         BudgetMetrics metrics = calculateBudgetMetrics(saved.getUser(), saved);
         return budgetMapper.toBudgetResponse(saved, metrics.totalSpent(), metrics.remainingBudget());
+    }
+
+    /**
+     * Retrieves a single budget by ID. Read-only operation.
+     * Validates ownership before returning.
+     */
+    @Transactional(readOnly = true)
+    public BudgetResponse getBudget(UUID currentUserId, UUID budgetId) {
+        Budget budget = ownershipValidationService.validateUserOwnsBudget(currentUserId, budgetId);
+        BudgetMetrics metrics = calculateBudgetMetrics(budget.getUser(), budget);
+        return budgetMapper.toBudgetResponse(budget, metrics.totalSpent(), metrics.remainingBudget());
+    }
+
+    /**
+     * Soft deletes a budget by setting deletedAt.
+     * The budget is preserved but excluded from normal reads.
+     */
+    @Transactional
+    public void deleteBudget(UUID currentUserId, UUID budgetId) {
+        Budget budget = ownershipValidationService.validateUserOwnsBudget(currentUserId, budgetId);
+        budget.setDeletedAt(Instant.now());
+        budgetRepository.save(budget);
     }
 
     /**

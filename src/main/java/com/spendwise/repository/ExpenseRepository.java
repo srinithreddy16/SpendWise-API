@@ -63,6 +63,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID>, JpaSpec
      */
     List<Expense> findByUser_IdAndCategory_IdAndDeletedIsFalseOrderByExpenseDateDesc(UUID userId, UUID categoryId);
 
+    boolean existsByCategory_IdAndDeletedIsFalse(UUID categoryId);
+
     /**
      * Finds expenses by user within a date range, excluding soft-deleted ones.
      * Uses boolean field for better indexing and query clarity.

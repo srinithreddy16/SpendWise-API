@@ -7,9 +7,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface CategoryRepository extends JpaRepository<Category, UUID> {  //It only provides universal CRUD operations.
+public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    Optional<Category> findByIdAndUser_Id(UUID id, UUID userId); //These are custom methods, because we knwo how the DataBase will be
+    Optional<Category> findByIdAndUser_Id(UUID id, UUID userId);
 
     List<Category> findByUser_Id(UUID userId);
+
+    boolean existsByUser_IdAndName(UUID userId, String name);
+
+    boolean existsByUser_IdAndNameAndIdNot(UUID userId, String name, UUID excludeId);
 }
