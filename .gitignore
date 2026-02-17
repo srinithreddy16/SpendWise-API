@@ -46,7 +46,7 @@ Thumbs.db
 *.pid.lock
 
 # Environment / local config (uncomment if you use local overrides)
-# .env
+.env
 # application-local.properties
 # application-local.yml
 
