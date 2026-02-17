@@ -78,6 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         TokenClaims claims = claimsOpt.get();
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(claims.username());
+            log.debug("JWT authentication successful: userId={}, email={}", userDetails.getUsername(), userDetails.getUsername());
             UsernamePasswordAuthenticationToken authentication =           // This token(object) is for passing to UsernamePasswordAuthentication filter which is next filter after JWT filter
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

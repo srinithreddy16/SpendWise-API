@@ -12,6 +12,8 @@ import com.spendwise.exception.InvalidRefreshTokenException;
 import com.spendwise.repository.UserRepository;
 import com.spendwise.security.JwtUtil;
 import com.spendwise.security.TokenClaims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,7 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final String REFRESH_TOKEN_TYPE = "refresh";
 
     @Autowired
@@ -55,7 +58,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(req.password())); //Encoded password will be saved
         user.setRole(Role.USER);
         user = userRepository.save(user);
-
+        log.info("User registered successfully: userId={}, email={}", user.getId(), user.getEmail());
         return buildAuthResponse(user);
     }
 
@@ -66,12 +69,17 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.email())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+                .orElseThrow(() -> {
+                    log.warn("Login attempt failed: user not found, email={}", req.email());
+                    return new InvalidCredentialsException("Invalid email or password");
+                });
 
         if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+            log.warn("Login attempt failed: invalid password, userId={}, email={}", user.getId(), user.getEmail());
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
+        log.info("User logged in successfully: userId={}, email={}", user.getId(), user.getEmail());
         return buildAuthResponse(user);
     }
 
@@ -104,6 +112,7 @@ public class AuthService {
         User user = userRepository.findByEmail(claims.username())  // If user not found → reject.
                 .orElseThrow(() -> new InvalidRefreshTokenException("User not found"));
 
+        log.info("Token refreshed successfully: userId={}, email={}", user.getId(), user.getEmail());
         return buildAuthResponse(user);  //none of the above Generate new tokens
     }
 

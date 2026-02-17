@@ -39,6 +39,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
+        log.warn("Invalid credentials attempt: path={}", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorResponse.of(ErrorCode.INVALID_CREDENTIALS, request.getRequestURI()));
     }
@@ -57,12 +58,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Access denied: path={}", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErrorResponse.of(ErrorCode.ACCESS_DENIED, request.getRequestURI()));
     }
 
     @ExceptionHandler(com.spendwise.exception.AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleCustomAccessDenied(com.spendwise.exception.AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Access denied: path={}", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErrorResponse.of(ErrorCode.ACCESS_DENIED, request.getRequestURI()));
     }
@@ -103,7 +106,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
-        log.error("Unexpected error", ex);
+        log.error("Unexpected error: path={}, error={}", request.getRequestURI(), ex.getClass().getSimpleName(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of(ErrorCode.INTERNAL_ERROR, request.getRequestURI()));
     }

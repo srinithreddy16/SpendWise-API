@@ -18,6 +18,8 @@ import com.spendwise.repository.BudgetRepository;
 import com.spendwise.repository.CategoryRepository;
 import com.spendwise.repository.ExpenseRepository;
 import com.spendwise.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,8 @@ import java.util.UUID;
 
 @Service
 public class ExpenseService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExpenseService.class);
 
     private final ExpenseRepository expenseRepository;
     private final CategoryRepository categoryRepository;
@@ -80,6 +84,8 @@ public class ExpenseService {
         validateMonthlyBudget(user.getId(), category.getId(), expense.getAmount(), expense.getExpenseDate());
 
         Expense saved = expenseRepository.save(expense);
+        log.info("Expense created: expenseId={}, userId={}, categoryId={}, amount={}, date={}",
+                saved.getId(), currentUserId, category.getId(), expense.getAmount(), expense.getExpenseDate());
         return expenseMapper.toExpenseResponse(saved);
     }
 
@@ -270,6 +276,8 @@ public class ExpenseService {
 
         BigDecimal projected = alreadySpent.add(expenseAmount);
         if (projected.compareTo(budgetLimit) > 0) {
+            log.warn("Budget validation failed: userId={}, categoryId={}, expenseAmount={}, alreadySpent={}, budgetLimit={}, projected={}",
+                    userId, categoryId, expenseAmount, alreadySpent, budgetLimit, projected);
             throw new BudgetExceededException("Expense exceeds remaining monthly budget");
         }
     }
