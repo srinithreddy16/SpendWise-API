@@ -167,6 +167,29 @@ curl -X GET "http://localhost:8080/expenses?page=0&size=10" \
 curl http://localhost:8080/actuator/health
 ```
 
+## Testing endpoints with the UI
+
+A React-based web app is available to test all API endpoints from the browser (auth, users, categories, expenses, budgets).
+
+**Repository:** [SpendWise-UI](https://github.com/srinithreddy16/SpendWise-UI)
+
+### Quick start
+
+1. **Start the API** (this repo) at http://localhost:8080 (Docker or Maven; see [Running with Docker](#running-with-docker) or [Running locally](#running-locally-dev-profile)).
+
+2. **Clone and run the UI:**
+   ```bash
+   git clone https://github.com/srinithreddy16/SpendWise-UI.git
+   cd SpendWise-UI
+   npm install
+   cp .env.example .env   # optional: set VITE_API_URL if the API is not on localhost:8080
+   npm run dev
+   ```
+
+3. Open the URL shown in the terminal (e.g. http://localhost:5173). Register or log in; the UI sends the JWT automatically to all protected endpoints.
+
+The API allows CORS from `http://localhost:3000` and `http://localhost:5173` so the UI can call it from the browser.
+
 ## Testing
 
 ### Strategy overview
@@ -204,8 +227,6 @@ mvn clean test
 - Uses the same PostgreSQL engine as production, avoiding dialect or SQL differences from in-memory databases (e.g. H2).
 - No manual database setup or shared test database; each test class spins up its own container.
 - Tests run with a single command (`mvn test`) with no external database configuration.
-
-> Note: API endpoints for business operations (expense creation, budgeting, etc.) are **not** documented yet and will be added once controllers and services are implemented.
 
 ## Production Features
 
