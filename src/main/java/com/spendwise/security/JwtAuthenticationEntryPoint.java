@@ -14,6 +14,8 @@ import java.io.IOException;
 
 
 /*
+This class helps in When authentication fails, we send a structured JSON response saying:
+‘Unauthorized’ instead of the default Spring error page.
 This class is written to customize how your API responds when authentication fails.
 Spring calls an AuthenticationEntryPoint, when: A request hits a protected endpoint and
 there is no JWT or it’s invalid
@@ -21,7 +23,7 @@ there is no JWT or it’s invalid
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper; //default ObjectMapper bean in Spring Boot. Turns our Java error object into JSON that the client can understand.”
 
     public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -34,6 +36,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.UNAUTHORIZED, request.getRequestURI());
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse)); //Converts the ErrorResponse Java object → JSON string using objectMapper.Sends the JSON in the HTTP response body
     }
 }

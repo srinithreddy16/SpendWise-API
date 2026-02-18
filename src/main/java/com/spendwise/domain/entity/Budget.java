@@ -36,14 +36,14 @@ public class Budget extends BaseEntity {
     /**
      * Owner of this budget. Unidirectional: User does not hold a collection of budgets.
      */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) //lazy means: Don’t load related data now. Load it only when I touch it.
     private User user;
 
     /**
      * Categories this budget applies to. Unidirectional: Category does not hold a collection of budgets.
      * Join table budget_categories links budget_id to category_id.
      */
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)  //one budget can have many categories and One Category can belong to many Budgets.
     @JoinTable(
             name = "budget_categories",
             joinColumns = @JoinColumn(name = "budget_id"),

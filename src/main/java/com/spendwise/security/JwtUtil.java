@@ -128,16 +128,17 @@ public class JwtUtil {
     }
 
     /**
-     * Extracts the username (sub claim) from the token.
+     * CLAIMS EXTRACTION
+     *1. Extracts the username (sub claim) from the token.
      * Does not validate the token; use {@link #validateToken(String)} first.
-     * To extract the username (or user ID) that was stored inside the JWT so the application knows which user is making the request.
+     **** To extract the username (or user ID) that was stored inside the JWT so the application knows which user is making the request.
      */
     public String getUsername(String token) {
         return parseClaims(token).getSubject();
     }
 
     /**
-     * Extracts the user id from the token.
+     *2. Extracts the user id from the token.
      * Does not validate the token; use {@link #validateToken(String)} first.
      */
     public UUID getUserId(String token) {
@@ -146,7 +147,7 @@ public class JwtUtil {
     }
 
     /**
-     * Extracts the roles from the token.
+     *3. Extracts the roles from the token.
      * Returns empty list if no roles claim or for refresh tokens.
      * Does not validate the token; use {@link #validateToken(String)} first.
      */
@@ -155,7 +156,7 @@ public class JwtUtil {
     }
 
     /**
-     * Validates the token and extracts all claims in one call.
+     *4. Validates the token and extracts all claims in one call.
      * Returns empty if the token is invalid or expired.
      */
     public Optional<TokenClaims> extractClaims(String token) {
