@@ -27,8 +27,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, HttpServletRequest request) {
         String path = request.getRequestURI();
         HttpStatus status = toHttpStatus(ex.getErrorCode());
+        String message = ex.getDetailMessage() != null ? ex.getDetailMessage() : ex.getErrorCode().getClientMessage();
         return ResponseEntity.status(status)
-                .body(ErrorResponse.of(ex.getErrorCode(), path));
+                .body(ErrorResponse.of(ex.getErrorCode().name(), message, path));
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

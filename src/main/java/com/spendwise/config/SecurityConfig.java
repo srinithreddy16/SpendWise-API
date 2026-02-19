@@ -15,6 +15,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 //This Configuration class Registers JwtAuthenticationFilter and configures the security chain
@@ -57,14 +58,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
+        // Allow localhost:3000 (Create React App) and localhost:5173-5200 (Vite default range)
+        List<String> origins = new ArrayList<>(List.of(
                 "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:5177",
-                "http://127.0.0.1:5177"
+                "http://127.0.0.1:3000"
         ));
+        for (int port = 5173; port <= 5200; port++) {
+            origins.add("http://localhost:" + port);
+            origins.add("http://127.0.0.1:" + port);
+        }
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Authorization"));
